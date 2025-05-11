@@ -14,8 +14,8 @@ ifndef LIBBP_INCLUDED
 $(error libbp.mk is not found or not included, cannot build.)
 endif
 
-SRC_ipnadminep := $(SRC)/ipnadminep.c \
-	$(SRC)/libipnfw.c \
+SRC_ipnadminep := $(SRC_BPV7)/ipnadminep.c \
+	$(SRC_BPV7)/libipnfw.c \
 	$(SRC_libici) \
 	$(SRC_libbp)
 

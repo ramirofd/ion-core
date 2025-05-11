@@ -1,5 +1,5 @@
 SRC_bpversion := \
-	$(SRC)/bpversion.c
+	$(SRC_BPV7)/bpversion.c
 
 bpversion:
 	$(GCC) $(CFLAG) -I$(INC) $(SRC_bpversion) \

@@ -3,6 +3,6 @@
 #
 LIBCFDP_INCLUDED = YES
 
-SRC_libcfdp := $(SRC)/libcfdp.c \
-	$(SRC)/libcfdpP.c \
-	$(SRC)/libcfdpops.c
+SRC_libcfdp := $(SRC_CFDP)/libcfdp.c \
+	$(SRC_CFDP)/libcfdpP.c \
+	$(SRC_CFDP)/libcfdpops.c

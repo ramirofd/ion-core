@@ -22,7 +22,7 @@ ifndef LIBLTP_INCLUDED
 $(error libltp.mk is not found or not included, cannot build.)
 endif
 
-SRC_ltpcli := $(SRC)/ltpcli.c \
+SRC_ltpcli := $(SRC_BPV7)/ltpcli.c \
 	$(SRC_libltp) \
 	$(SRC_libici) \
 	$(SRC_libbp)

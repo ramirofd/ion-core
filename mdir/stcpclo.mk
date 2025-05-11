@@ -14,9 +14,9 @@ ifndef LIBBP_INCLUDED
 $(error libbp.mk is not found or not included, cannot build.)
 endif
 
-SRC_stcpclo := $(SRC)/libstcpcla.c \
-	$(SRC)/stcpclo.c \
-	$(SRC)/libipnfw.c \
+SRC_stcpclo := $(SRC_BPV7)/libstcpcla.c \
+	$(SRC_BPV7)/stcpclo.c \
+	$(SRC_BPV7)/libipnfw.c \
 	$(SRC_libici) \
 	$(SRC_libbp)
 

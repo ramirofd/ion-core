@@ -14,7 +14,7 @@ ifndef LIBCFDP_INCLUDED
 $(error libcfdp.mk is not found or not included, cannot build.)
 endif
 
-SRC_bpcp := $(SRC)/bpcp.c \
+SRC_bpcp := $(SRC_BPV7)/bpcp.c \
 	$(SRC_libici) \
 	$(SRC_libcfdp)
 

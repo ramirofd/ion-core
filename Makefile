@@ -21,7 +21,11 @@ INSTALL_PATH = /usr/local/
 
 PWD := $(shell pwd)
 
-export SRC = $(PWD)/src
+export SRC_ICI = $(PWD)/src/ici
+export SRC_BPV7 = $(PWD)/src/bpv7
+export SRC_CFDP = $(PWD)/src/cfdp
+export SRC_LTP = $(PWD)/src/ltp
+export SRC_RESTART = $(PWD)/src/restart
 export INC = $(PWD)/inc
 export OUT_BIN = $(PWD)/bin
 export MAN = $(PWD)/man
@@ -66,16 +70,16 @@ MK_FILES := $(addprefix $(MDIR)/,$(addsuffix .mk,$(PROGRAMS)))
 include $(MK_FILES)
 
 # Object files for static libraries
-STATIC_ICI_OBJ_FILES := $(patsubst $(SRC)/%.c,$(LIB)/obj/static/%.o,$(SRC_libici))
-STATIC_BP_OBJ_FILES := $(patsubst $(SRC)/%.c,$(LIB)/obj/static/%.o,$(SRC_libbp))
-STATIC_LTP_OBJ_FILES := $(patsubst $(SRC)/%.c,$(LIB)/obj/static/%.o,$(SRC_libltp))
-STATIC_CFDP_OBJ_FILES := $(patsubst $(SRC)/%.c,$(LIB)/obj/static/%.o,$(SRC_libcfdp))
+STATIC_ICI_OBJ_FILES := $(patsubst $(SRC_ICI)/%.c,$(LIB)/obj/static/%.o,$(SRC_libici))
+STATIC_BP_OBJ_FILES := $(patsubst $(SRC_BPV7)/%.c,$(LIB)/obj/static/%.o,$(SRC_libbp))
+STATIC_LTP_OBJ_FILES := $(patsubst $(SRC_LTP)/%.c,$(LIB)/obj/static/%.o,$(SRC_libltp))
+STATIC_CFDP_OBJ_FILES := $(patsubst $(SRC_CFDP)/%.c,$(LIB)/obj/static/%.o,$(SRC_libcfdp))
 
 # Object files for dynamic libraries
-SHARED_ICI_OBJ_FILES := $(patsubst $(SRC)/%.c,$(LIB)/obj/shared/%.o,$(SRC_libici))
-SHARED_BP_OBJ_FILES := $(patsubst $(SRC)/%.c,$(LIB)/obj/shared/%.o,$(SRC_libbp))
-SHARED_LTP_OBJ_FILES := $(patsubst $(SRC)/%.c,$(LIB)/obj/shared/%.o,$(SRC_libltp))
-SHARED_CFDP_OBJ_FILES := $(patsubst $(SRC)/%.c,$(LIB)/obj/shared/%.o,$(SRC_libcfdp))
+SHARED_ICI_OBJ_FILES := $(patsubst $(SRC_ICI)/%.c,$(LIB)/obj/shared/%.o,$(SRC_libici))
+SHARED_BP_OBJ_FILES := $(patsubst $(SRC_BPV7)/%.c,$(LIB)/obj/shared/%.o,$(SRC_libbp))
+SHARED_LTP_OBJ_FILES := $(patsubst $(SRC_LTP)/%.c,$(LIB)/obj/shared/%.o,$(SRC_libltp))
+SHARED_CFDP_OBJ_FILES := $(patsubst $(SRC_CFDP)/%.c,$(LIB)/obj/shared/%.o,$(SRC_libcfdp))
 
 # static library targets
 static: staticlibici staticlibbp staticlibltp staticlibcfdp
@@ -92,8 +96,17 @@ staticlibltp: $(STATIC_LTP_OBJ_FILES)
 staticlibcfdp: $(STATIC_CFDP_OBJ_FILES)
 	ar rcs $(LIB)/libcfdpcore.a $^
 
-# Object files compile rule for static library #
-$(LIB)/obj/static/%.o: $(SRC)/%.c
+# Object files compile rule for static library
+$(LIB)/obj/static/%.o: $(SRC_ICI)/%.c
+	$(GCC) $(CFLAG) -I$(INC) -c $< -o $@
+
+$(LIB)/obj/static/%.o: $(SRC_BPV7)/%.c
+	$(GCC) $(CFLAG) -I$(INC) -c $< -o $@
+
+$(LIB)/obj/static/%.o: $(SRC_LTP)/%.c
+	$(GCC) $(CFLAG) -I$(INC) -c $< -o $@
+
+$(LIB)/obj/static/%.o: $(SRC_CFDP)/%.c
 	$(GCC) $(CFLAG) -I$(INC) -c $< -o $@
 
 # dynamic/shared library targets
@@ -111,8 +124,17 @@ $(LIB)/libltpcore.so: $(SHARED_LTP_OBJ_FILES)
 $(LIB)/libcfdpcore.so: $(SHARED_CFDP_OBJ_FILES)
 	$(GCC) -shared -o $(LIB)/libcfdpcore.so $(SHARED_ICI_OBJ_FILES) -L$(LIB) -licicore -lbpcore
 
-# Object files compile rule for shared library #
-$(LIB)/obj/shared/%.o: $(SRC)/%.c
+# Object files compile rule for shared library
+$(LIB)/obj/shared/%.o: $(SRC_ICI)/%.c
+	$(GCC) $(CFLAG) -I$(INC) -c $< $(SHARED_FLAG) -o $@
+
+$(LIB)/obj/shared/%.o: $(SRC_BPV7)/%.c
+	$(GCC) $(CFLAG) -I$(INC) -c $< $(SHARED_FLAG) -o $@
+
+$(LIB)/obj/shared/%.o: $(SRC_LTP)/%.c
+	$(GCC) $(CFLAG) -I$(INC) -c $< $(SHARED_FLAG) -o $@
+
+$(LIB)/obj/shared/%.o: $(SRC_CFDP)/%.c
 	$(GCC) $(CFLAG) -I$(INC) -c $< $(SHARED_FLAG) -o $@
 
 install:
@@ -134,7 +156,6 @@ man:
 	$(info Make "man" target...)
 	./scripts/make-man-pages.sh $(SRC)/man "$(PROGRAMS)"
 	find $(MAN) -maxdepth 1 -type f -exec cp -v {} $(INSTALL_PATH)/share/man/man1 \; || true
-
 
 clean:
 	$(info Make "clean" target...)

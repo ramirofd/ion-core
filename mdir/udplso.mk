@@ -14,9 +14,9 @@ ifndef LIBLTP_INCLUDED
 $(error libltp.mk is not found or not included, cannot build.)
 endif
 
-SRC_udplso := $(SRC)/udplso.c \
+SRC_udplso := $(SRC_LTP)/udplso.c \
 	$(SRC_libltp) \
-	$(SRC)/libudplsa.c \
+	$(SRC_LTP)/libudplsa.c \
 	$(SRC_libici)
 	
 

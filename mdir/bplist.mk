@@ -14,7 +14,7 @@ ifndef LIBBP_INCLUDED
 $(error libbp.mk is not found or not included, cannot build.)
 endif
 
-SRC_bplist := $(SRC)/bplist.c \
+SRC_bplist := $(SRC_BPV7)/bplist.c \
 	$(SRC_libici) \
 	$(SRC_libbp)
 

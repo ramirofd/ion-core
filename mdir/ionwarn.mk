@@ -9,7 +9,7 @@ endif
 #$(info libici.mk has been included, proceed to build.)
 
 SRC_ionwarn := \
-	$(SRC)/ionwarn.c \
+	$(SRC_ICI)/ionwarn.c \
 	$(SRC_libici)
 
 ionwarn:

@@ -14,7 +14,7 @@ ifndef LIBBP_INCLUDED
 $(error libbp.mk is not found or not included, cannot build.)
 endif
 
-SRC_bpecho := $(SRC)/bpecho.c \
+SRC_bpecho := $(SRC_BPV7)/bpecho.c \
 	$(SRC_libici) \
 	$(SRC_libbp) 
 

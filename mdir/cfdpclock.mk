@@ -22,7 +22,7 @@ ifndef LIBCFDP_INCLUDED
 $(error libcfdp.mk is not found or not included, cannot build.)
 endif
 
-SRC_cfdpclock := $(SRC)/cfdpclock.c \
+SRC_cfdpclock := $(SRC_CFDP)/cfdpclock.c \
 	$(SRC_libici) \
 	$(SRC_libbp) \
 	$(SRC_libcfdp)

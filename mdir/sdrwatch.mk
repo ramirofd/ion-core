@@ -9,7 +9,7 @@ endif
 #$(info libici.mk has been included, proceed to build.)
 
 SRC_sdrwatch := \
-	$(SRC)/sdrwatch.c \
+	$(SRC_ICI)/sdrwatch.c \
 	$(SRC_libici)
 
 sdrwatch:

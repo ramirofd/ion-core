@@ -30,8 +30,8 @@ ifndef LIBCFDP_INCLUDED
 $(error libcfdp.mk is not found or not included, cannot build.)
 endif
 
-SRC_ionrestart := $(SRC)/ionrestart.c \
-	$(SRC)/libcgr.c \
+SRC_ionrestart := $(SRC_RESTART)/ionrestart.c \
+	$(SRC_BPV7)/libcgr.c \
 	$(SRC_libcfdp) \
 	$(SRC_libltp) \
 	$(SRC_libbp) \

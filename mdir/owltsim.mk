@@ -6,7 +6,7 @@ ifndef LIBICI_INCLUDED
 $(error libici.mk is not found or not included, cannot build.)
 endif
 
-SRC_owltsim := $(SRC)/owltsim.c \
+SRC_owltsim := $(SRC_ICI)/owltsim.c \
 	$(SRC_libici)
 
 owltsim:

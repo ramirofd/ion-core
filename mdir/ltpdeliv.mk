@@ -14,7 +14,7 @@ ifndef LIBLTP_INCLUDED
 $(error libltp.mk is not found or not included, cannot build.)
 endif
 
-SRC_ltpdeliv := $(SRC)/ltpdeliv.c \
+SRC_ltpdeliv := $(SRC_LTP)/ltpdeliv.c \
 	$(SRC_libltp) \
 	$(SRC_libici)
 	

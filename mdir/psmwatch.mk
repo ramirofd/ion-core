@@ -1,11 +1,11 @@
 SRC_psmwatch := \
-	$(SRC)/psmwatch.c \
-	$(SRC)/platform.c \
-	$(SRC)/platform_sm.c \
-	$(SRC)/memmgr.c \
-	$(SRC)/psm.c \
-	$(SRC)/smlist.c \
-	$(SRC)/sptrace.c
+	$(SRC_ICI)/psmwatch.c \
+	$(SRC_ICI)/platform.c \
+	$(SRC_ICI)/platform_sm.c \
+	$(SRC_ICI)/memmgr.c \
+	$(SRC_ICI)/psm.c \
+	$(SRC_ICI)/smlist.c \
+	$(SRC_ICI)/sptrace.c
 
 psmwatch:
 	$(GCC) $(CFLAG) -I$(INC) $(SRC_psmwatch) \

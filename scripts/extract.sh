@@ -16,7 +16,6 @@ else
   SED_INPLACE="-i"     # Linux or other systems
 fi
 
-
 # Display Help Menu
 function display_help() {
     echo "Usage: $0 [source_path]"
@@ -53,46 +52,39 @@ ION_VER="4.1.3s"
 ION_SRC_ZIP=https://github.com/nasa-jpl/ION-DTN/archive/refs/tags/ion-open-source-$ION_VER.tar.gz
 
 # Check if a source path was provided
-
-# if not, use the tmp under ion-core
 if [[ -z "$1" ]]; then
-	# set default source path and clear it
-	SOURCE_PATH="$ROOT_DIR/tmp/ion-open-source-$ION_VER"
-	rm -rf "$SOURCE_PATH"
-	mkdir -p "$SOURCE_PATH"
-	echo "No source path specified. ION $ION_VER will be downloaded to location: $SOURCE_PATH"
-	# Use wget to download the file
-	if wget "$ION_SRC_ZIP"; then
-		tar -xzf ion-open-source-$ION_VER.tar.gz -C "$SOURCE_PATH" --strip-components 1
-		rm ion-open-source-$ION_VER.tar.gz
-		echo "Download and extraction successful."
-	else
-		echo "Download failed."
-		exit 1
-	fi
+  # set default source path and clear it
+  SOURCE_PATH="$ROOT_DIR/tmp/ion-open-source-$ION_VER"
+  rm -rf "$SOURCE_PATH"
+  mkdir -p "$SOURCE_PATH"
+  echo "No source path specified. ION $ION_VER will be downloaded to location: $SOURCE_PATH"
+  # Use wget to download the file
+  if wget "$ION_SRC_ZIP"; then
+    tar -xzf ion-open-source-$ION_VER.tar.gz -C "$SOURCE_PATH" --strip-components 1
+    rm ion-open-source-$ION_VER.tar.gz
+    echo "Download and extraction successful."
+  else
+    echo "Download failed."
+    exit 1
+  fi
 else
-	# Use the provided source path
-
-	# Determine the full path to source code
-	# Check if the path is relative or absolute
-		if [[ "$1" = /* ]]; then
-			# It's already an absolute path
-			SOURCE_PATH="$1"
-		else
-			# It's a relative path, prepend the current working directory
-			SOURCE_PATH="$(pwd)/$1"
-		fi
-
-	# Normalize the path to remove any redundant components like ../ or ./
-	SOURCE_PATH=$(cd "$(dirname "$SOURCE_PATH")" && pwd)/$(basename "$SOURCE_PATH")
-	
-	echo "Using provided source path: $SOURCE_PATH"
-
-	# Check if the source path exists
-	if [[ ! -d "$SOURCE_PATH" ]]; then
-		echo "Source path does not exist. Please provide a valid source path."
-		exit 1
-	fi
+  # Use the provided source path
+  # Determine the full path to source code
+  if [[ "$1" = /* ]]; then
+    # It's already an absolute path
+    SOURCE_PATH="$1"
+  else
+    # It's a relative path, prepend the current working directory
+    SOURCE_PATH="$(pwd)/$1"
+  fi
+  # Normalize the path to remove any redundant components like ../ or ./
+  SOURCE_PATH=$(cd "$(dirname "$SOURCE_PATH")" && pwd)/$(basename "$SOURCE_PATH")
+  echo "Using provided source path: $SOURCE_PATH"
+  # Check if the source path exists
+  if [[ ! -d "$SOURCE_PATH" ]]; then
+    echo "Source path does not exist. Please provide a valid source path."
+    exit 1
+  fi
 fi
 
 # Set the output directories
@@ -104,300 +96,296 @@ TESTS="$ROOT_DIR/tests"
 
 # List of source files to link
 SOURCES=(
-# BPv7
-	$SOURCE_PATH/bpv7/bibe/bibe.c
-	$SOURCE_PATH/bpv7/bpsec/instr/bpsec_instr.c
-	$SOURCE_PATH/bpv7/bpsec/policy/bpsec_policy_event.c
-	$SOURCE_PATH/bpv7/bpsec/policy/bpsec_policy_eventset.c
-	$SOURCE_PATH/bpv7/bpsec/policy/bpsec_policy_rule.c
-	$SOURCE_PATH/bpv7/bpsec/policy/bpsec_policy.c
-	$SOURCE_PATH/bpv7/bpsec/sci/bcb_aes_gcm_sc.c
-	$SOURCE_PATH/bpv7/bpsec/sci/bib_hmac_sha2_sc.c
-	$SOURCE_PATH/bpv7/bpsec/sci/ion_test_sc.c
-	$SOURCE_PATH/bpv7/bpsec/sci/rfc9173_utils.c
-	$SOURCE_PATH/bpv7/bpsec/sci/sc_util.c
-	$SOURCE_PATH/bpv7/bpsec/sci/sc_value.c
-	$SOURCE_PATH/bpv7/bpsec/sci/sci_valmap.c
-	$SOURCE_PATH/bpv7/bpsec/sci/sci.c
-	$SOURCE_PATH/bpv7/bpsec/utils/bpsec_asb.c
-	$SOURCE_PATH/bpv7/bpsec/utils/bpsec_util.c
-	$SOURCE_PATH/bpv7/cgr/libcgr.c
-	$SOURCE_PATH/bpv7/daemon/bpclm.c
-	$SOURCE_PATH/bpv7/daemon/bpclock.c
-	$SOURCE_PATH/bpv7/daemon/bptransit.c
-	$SOURCE_PATH/bpv7/imc/libimcfw.c
-	$SOURCE_PATH/bpv7/ipn/ipnadmin.c
-	$SOURCE_PATH/bpv7/ipn/ipnadminep.c
-	$SOURCE_PATH/bpv7/ipn/ipnfw.c
-	$SOURCE_PATH/bpv7/ipn/libipnfw.c
-	$SOURCE_PATH/bpv7/library/bei.c
-	$SOURCE_PATH/bpv7/library/eureka.c
-	$SOURCE_PATH/bpv7/library/ext/bae/bae.c
-	$SOURCE_PATH/bpv7/library/ext/bpq/bpq.c
-	$SOURCE_PATH/bpv7/library/ext/bpsec/bcb.c
-	$SOURCE_PATH/bpv7/library/ext/bpsec/bib.c
-	$SOURCE_PATH/bpv7/library/ext/hcb/hcb.c
-	$SOURCE_PATH/bpv7/library/ext/imc/imc.c
-	$SOURCE_PATH/bpv7/library/ext/meb/meb.c
-	$SOURCE_PATH/bpv7/library/ext/pnb/pnb.c
-	$SOURCE_PATH/bpv7/library/ext/snw/snw.c
-	$SOURCE_PATH/bpv7/library/libbp.c
-	$SOURCE_PATH/bpv7/library/libbpP.c
-	$SOURCE_PATH/bpv7/ltp/ltpcli.c
-	$SOURCE_PATH/bpv7/ltp/ltpclo.c
-	$SOURCE_PATH/bpv7/saga/saga.c
-	$SOURCE_PATH/bpv7/stcp/stcpcli.c
-	$SOURCE_PATH/bpv7/stcp/stcpclo.c
-	$SOURCE_PATH/bpv7/stcp/libstcpcla.c
-	$SOURCE_PATH/bpv7/test/bpchat.c
-	$SOURCE_PATH/bpv7/test/bpcounter.c
-	$SOURCE_PATH/bpv7/test/bpdriver.c
-	$SOURCE_PATH/bpv7/test/bpecho.c
-	$SOURCE_PATH/bpv7/test/bping.c
-	$SOURCE_PATH/bpv7/test/bpsink.c
-	$SOURCE_PATH/bpv7/test/bpsource.c
-	$SOURCE_PATH/bpv7/udp/libudpcla.c
-	$SOURCE_PATH/bpv7/udp/udpcli.c
-	$SOURCE_PATH/bpv7/udp/udpclo.c
-	$SOURCE_PATH/bpv7/utils/bpadmin.c
-	$SOURCE_PATH/bpv7/utils/bpcancel.c
-	$SOURCE_PATH/bpv7/utils/bplist.c
-	$SOURCE_PATH/bpv7/utils/bprecvfile.c
-	$SOURCE_PATH/bpv7/utils/bpsendfile.c
-	$SOURCE_PATH/bpv7/utils/bpstats.c
-	$SOURCE_PATH/bpv7/utils/bptrace.c
-	$SOURCE_PATH/bpv7/utils/bpversion.c
-	$SOURCE_PATH/bpv7/utils/lgagent.c
-	$SOURCE_PATH/bpv7/utils/lgsend.c
-# CFDP
-	$SOURCE_PATH/cfdp/bp/bputa.c
-	$SOURCE_PATH/cfdp/daemon/cfdpclock.c
-	$SOURCE_PATH/cfdp/library/libcfdp.c
-	$SOURCE_PATH/cfdp/library/libcfdpops.c
-	$SOURCE_PATH/cfdp/library/libcfdpP.c
-	$SOURCE_PATH/cfdp/test/cfdptest.c
-	$SOURCE_PATH/cfdp/utils/bpcp.c
-	$SOURCE_PATH/cfdp/utils/bpcpd.c
-	$SOURCE_PATH/cfdp/utils/cfdpadmin.c
-# ICI
-	$SOURCE_PATH/ici/bulk/STUB_BULK/bulk.c
-	$SOURCE_PATH/ici/crypto/NULL_SUITES/csi.c
-	$SOURCE_PATH/ici/daemon/rfxclock.c
-	$SOURCE_PATH/ici/library/cbor.c
-	$SOURCE_PATH/ici/library/crc.c
-	$SOURCE_PATH/ici/library/ion.c
-	$SOURCE_PATH/ici/library/ionsec.c
-	$SOURCE_PATH/ici/library/lyst.c
-	$SOURCE_PATH/ici/library/memmgr.c
-	$SOURCE_PATH/ici/library/platform_sm.c
-	$SOURCE_PATH/ici/library/platform.c
-	$SOURCE_PATH/ici/library/psm.c
-	$SOURCE_PATH/ici/library/radix.c
-	$SOURCE_PATH/ici/library/rfx.c
-	$SOURCE_PATH/ici/library/smlist.c
-	$SOURCE_PATH/ici/library/smrbt.c
-	$SOURCE_PATH/ici/library/sptrace.c
-	$SOURCE_PATH/ici/library/zco.c
-	$SOURCE_PATH/ici/sdr/sdrcatlg.c
-	$SOURCE_PATH/ici/sdr/sdrhash.c
-	$SOURCE_PATH/ici/sdr/sdrlist.c
-	$SOURCE_PATH/ici/sdr/sdrmgt.c
-	$SOURCE_PATH/ici/sdr/sdrstring.c
-	$SOURCE_PATH/ici/sdr/sdrtable.c
-	$SOURCE_PATH/ici/sdr/sdrxn.c
-	$SOURCE_PATH/ici/utils/ionadmin.c
-	$SOURCE_PATH/ici/utils/ionwarn.c
-	$SOURCE_PATH/ici/utils/psmwatch.c
-	$SOURCE_PATH/ici/utils/sdrwatch.c
-	$SOURCE_PATH/ici/test/owltsim.c
-# LTP
-	$SOURCE_PATH/ltp/daemon/ltpclock.c
-	$SOURCE_PATH/ltp/daemon/ltpdeliv.c
-	$SOURCE_PATH/ltp/daemon/ltpmeter.c
-	$SOURCE_PATH/ltp/library/ext/ltpextensions.c
-	$SOURCE_PATH/ltp/library/libltp.c
-	$SOURCE_PATH/ltp/library/libltpP.c
-	$SOURCE_PATH/ltp/library/ltpei.c
-	$SOURCE_PATH/ltp/sda/libsda.c
-	$SOURCE_PATH/ltp/udp/libudplsa.c
-	$SOURCE_PATH/ltp/udp/udplsi.c
-	$SOURCE_PATH/ltp/udp/udplso.c
-	$SOURCE_PATH/ltp/utils/ltpadmin.c
-# restart
-	$SOURCE_PATH/restart/utils/ionrestart.c
+  # BPv7
+  "$SOURCE_PATH/bpv7/bibe/bibe.c:bpv7"
+  "$SOURCE_PATH/bpv7/bpsec/instr/bpsec_instr.c:bpv7"
+  "$SOURCE_PATH/bpv7/bpsec/policy/bpsec_policy_event.c:bpv7"
+  "$SOURCE_PATH/bpv7/bpsec/policy/bpsec_policy_eventset.c:bpv7"
+  "$SOURCE_PATH/bpv7/bpsec/policy/bpsec_policy_rule.c:bpv7"
+  "$SOURCE_PATH/bpv7/bpsec/policy/bpsec_policy.c:bpv7"
+  "$SOURCE_PATH/bpv7/bpsec/sci/bcb_aes_gcm_sc.c:bpv7"
+  "$SOURCE_PATH/bpv7/bpsec/sci/bib_hmac_sha2_sc.c:bpv7"
+  "$SOURCE_PATH/bpv7/bpsec/sci/ion_test_sc.c:bpv7"
+  "$SOURCE_PATH/bpv7/bpsec/sci/rfc9173_utils.c:bpv7"
+  "$SOURCE_PATH/bpv7/bpsec/sci/sc_util.c:bpv7"
+  "$SOURCE_PATH/bpv7/bpsec/sci/sc_value.c:bpv7"
+  "$SOURCE_PATH/bpv7/bpsec/sci/sci_valmap.c:bpv7"
+  "$SOURCE_PATH/bpv7/bpsec/sci/sci.c:bpv7"
+  "$SOURCE_PATH/bpv7/bpsec/utils/bpsec_asb.c:bpv7"
+  "$SOURCE_PATH/bpv7/bpsec/utils/bpsec_util.c:bpv7"
+  "$SOURCE_PATH/bpv7/cgr/libcgr.c:bpv7"
+  "$SOURCE_PATH/bpv7/daemon/bpclm.c:bpv7"
+  "$SOURCE_PATH/bpv7/daemon/bpclock.c:bpv7"
+  "$SOURCE_PATH/bpv7/daemon/bptransit.c:bpv7"
+  "$SOURCE_PATH/bpv7/imc/libimcfw.c:bpv7"
+  "$SOURCE_PATH/bpv7/ipn/ipnadmin.c:bpv7"
+  "$SOURCE_PATH/bpv7/ipn/ipnadminep.c:bpv7"
+  "$SOURCE_PATH/bpv7/ipn/ipnfw.c:bpv7"
+  "$SOURCE_PATH/bpv7/ipn/libipnfw.c:bpv7"
+  "$SOURCE_PATH/bpv7/library/bei.c:bpv7"
+  "$SOURCE_PATH/bpv7/library/eureka.c:bpv7"
+  "$SOURCE_PATH/bpv7/library/ext/bae/bae.c:bpv7"
+  "$SOURCE_PATH/bpv7/library/ext/bpq/bpq.c:bpv7"
+  "$SOURCE_PATH/bpv7/library/ext/bpsec/bcb.c:bpv7"
+  "$SOURCE_PATH/bpv7/library/ext/bpsec/bib.c:bpv7"
+  "$SOURCE_PATH/bpv7/library/ext/hcb/hcb.c:bpv7"
+  "$SOURCE_PATH/bpv7/library/ext/imc/imc.c:bpv7"
+  "$SOURCE_PATH/bpv7/library/ext/meb/meb.c:bpv7"
+  "$SOURCE_PATH/bpv7/library/ext/pnb/pnb.c:bpv7"
+  "$SOURCE_PATH/bpv7/library/ext/snw/snw.c:bpv7"
+  "$SOURCE_PATH/bpv7/library/libbp.c:bpv7"
+  "$SOURCE_PATH/bpv7/library/libbpP.c:bpv7"
+  "$SOURCE_PATH/bpv7/ltp/ltpcli.c:bpv7"
+  "$SOURCE_PATH/bpv7/ltp/ltpclo.c:bpv7"
+  "$SOURCE_PATH/bpv7/saga/saga.c:bpv7"
+  "$SOURCE_PATH/bpv7/stcp/stcpcli.c:bpv7"
+  "$SOURCE_PATH/bpv7/stcp/stcpclo.c:bpv7"
+  "$SOURCE_PATH/bpv7/stcp/libstcpcla.c:bpv7"
+  "$SOURCE_PATH/bpv7/test/bpchat.c:bpv7"
+  "$SOURCE_PATH/bpv7/test/bpcounter.c:bpv7"
+  "$SOURCE_PATH/bpv7/test/bpdriver.c:bpv7"
+  "$SOURCE_PATH/bpv7/test/bpecho.c:bpv7"
+  "$SOURCE_PATH/bpv7/test/bping.c:bpv7"
+  "$SOURCE_PATH/bpv7/test/bpsink.c:bpv7"
+  "$SOURCE_PATH/bpv7/test/bpsource.c:bpv7"
+  "$SOURCE_PATH/bpv7/udp/libudpcla.c:bpv7"
+  "$SOURCE_PATH/bpv7/udp/udpcli.c:bpv7"
+  "$SOURCE_PATH/bpv7/udp/udpclo.c:bpv7"
+  "$SOURCE_PATH/bpv7/utils/bpadmin.c:bpv7"
+  "$SOURCE_PATH/bpv7/utils/bpcancel.c:bpv7"
+  "$SOURCE_PATH/bpv7/utils/bplist.c:bpv7"
+  "$SOURCE_PATH/bpv7/utils/bprecvfile.c:bpv7"
+  "$SOURCE_PATH/bpv7/utils/bpsendfile.c:bpv7"
+  "$SOURCE_PATH/bpv7/utils/bpstats.c:bpv7"
+  "$SOURCE_PATH/bpv7/utils/bptrace.c:bpv7"
+  "$SOURCE_PATH/bpv7/utils/bpversion.c:bpv7"
+  "$SOURCE_PATH/bpv7/utils/lgagent.c:bpv7"
+  "$SOURCE_PATH/bpv7/utils/lgsend.c:bpv7"
+  # CFDP
+  "$SOURCE_PATH/cfdp/bp/bputa.c:cfdp"
+  "$SOURCE_PATH/cfdp/daemon/cfdpclock.c:cfdp"
+  "$SOURCE_PATH/cfdp/library/libcfdp.c:cfdp"
+  "$SOURCE_PATH/cfdp/library/libcfdpops.c:cfdp"
+  "$SOURCE_PATH/cfdp/library/libcfdpP.c:cfdp"
+  "$SOURCE_PATH/cfdp/test/cfdptest.c:cfdp"
+  "$SOURCE_PATH/cfdp/utils/bpcp.c:cfdp"
+  "$SOURCE_PATH/cfdp/utils/bpcpd.c:cfdp"
+  "$SOURCE_PATH/cfdp/utils/cfdpadmin.c:cfdp"
+  # ICI
+  "$SOURCE_PATH/ici/bulk/STUB_BULK/bulk.c:ici"
+  "$SOURCE_PATH/ici/crypto/NULL_SUITES/csi.c:ici"
+  "$SOURCE_PATH/ici/daemon/rfxclock.c:ici"
+  "$SOURCE_PATH/ici/library/cbor.c:ici"
+  "$SOURCE_PATH/ici/library/crc.c:ici"
+  "$SOURCE_PATH/ici/library/ion.c:ici"
+  "$SOURCE_PATH/ici/library/ionsec.c:ici"
+  "$SOURCE_PATH/ici/library/lyst.c:ici"
+  "$SOURCE_PATH/ici/library/memmgr.c:ici"
+  "$SOURCE_PATH/ici/library/platform_sm.c:ici"
+  "$SOURCE_PATH/ici/library/platform.c:ici"
+  "$SOURCE_PATH/ici/library/psm.c:ici"
+  "$SOURCE_PATH/ici/library/radix.c:ici"
+  "$SOURCE_PATH/ici/library/rfx.c:ici"
+  "$SOURCE_PATH/ici/library/smlist.c:ici"
+  "$SOURCE_PATH/ici/library/smrbt.c:ici"
+  "$SOURCE_PATH/ici/library/sptrace.c:ici"
+  "$SOURCE_PATH/ici/library/zco.c:ici"
+  "$SOURCE_PATH/ici/sdr/sdrcatlg.c:ici"
+  "$SOURCE_PATH/ici/sdr/sdrhash.c:ici"
+  "$SOURCE_PATH/ici/sdr/sdrlist.c:ici"
+  "$SOURCE_PATH/ici/sdr/sdrmgt.c:ici"
+  "$SOURCE_PATH/ici/sdr/sdrstring.c:ici"
+  "$SOURCE_PATH/ici/sdr/sdrtable.c:ici"
+  "$SOURCE_PATH/ici/sdr/sdrxn.c:ici"
+  "$SOURCE_PATH/ici/utils/ionadmin.c:ici"
+  "$SOURCE_PATH/ici/utils/ionwarn.c:ici"
+  "$SOURCE_PATH/ici/utils/psmwatch.c:ici"
+  "$SOURCE_PATH/ici/utils/sdrwatch.c:ici"
+  "$SOURCE_PATH/ici/test/owltsim.c:ici"
+  # LTP
+  "$SOURCE_PATH/ltp/daemon/ltpclock.c:ltp"
+  "$SOURCE_PATH/ltp/daemon/ltpdeliv.c:ltp"
+  "$SOURCE_PATH/ltp/daemon/ltpmeter.c:ltp"
+  "$SOURCE_PATH/ltp/library/ext/ltpextensions.c:ltp"
+  "$SOURCE_PATH/ltp/library/libltp.c:ltp"
+  "$SOURCE_PATH/ltp/library/libltpP.c:ltp"
+  "$SOURCE_PATH/ltp/library/ltpei.c:ltp"
+  "$SOURCE_PATH/ltp/sda/libsda.c:ltp"
+  "$SOURCE_PATH/ltp/udp/libudplsa.c:ltp"
+  "$SOURCE_PATH/ltp/udp/udplsi.c:ltp"
+  "$SOURCE_PATH/ltp/udp/udplso.c:ltp"
+  "$SOURCE_PATH/ltp/utils/ltpadmin.c:ltp"
+  # restart
+  "$SOURCE_PATH/restart/utils/ionrestart.c:restart"
 )
 
 HEADERS=(
-# BPv7
-	$SOURCE_PATH/bpv7/bibe/bibe.h
-	$SOURCE_PATH/bpv7/bibe/bibeP.h
-	$SOURCE_PATH/bpv7/bpsec/instr/bpsec_instr.h
-	$SOURCE_PATH/bpv7/bpsec/policy/bpsec_policy_event.h
-	$SOURCE_PATH/bpv7/bpsec/policy/bpsec_policy_eventset.h
-	$SOURCE_PATH/bpv7/bpsec/policy/bpsec_policy_rule.h
-	$SOURCE_PATH/bpv7/bpsec/policy/bpsec_policy.h
-	$SOURCE_PATH/bpv7/bpsec/sci/bcb_aes_gcm_sc.h
-	$SOURCE_PATH/bpv7/bpsec/sci/bib_hmac_sha2_sc.h
-	$SOURCE_PATH/bpv7/bpsec/sci/ion_test_sc.h
-	$SOURCE_PATH/bpv7/bpsec/sci/rfc9173_utils.h
-	$SOURCE_PATH/bpv7/bpsec/sci/sc_util.h
-	$SOURCE_PATH/bpv7/bpsec/sci/sc_value.h
-	$SOURCE_PATH/bpv7/bpsec/sci/sci_structs.h
-	$SOURCE_PATH/bpv7/bpsec/sci/sci_valmap.h
-	$SOURCE_PATH/bpv7/bpsec/sci/sci.h
-	$SOURCE_PATH/bpv7/bpsec/utils/bpsec_asb.h
-	$SOURCE_PATH/bpv7/bpsec/utils/bpsec_util.h 
-	$SOURCE_PATH/bpv7/dtn2/dtn2fw.h
-	$SOURCE_PATH/bpv7/imc/imcfw.h
-	$SOURCE_PATH/bpv7/include/bp.h
-	$SOURCE_PATH/bpv7/include/eureka.h
-	$SOURCE_PATH/bpv7/ipn/ipnfw.h
-	$SOURCE_PATH/bpv7/library/bei.h
-	$SOURCE_PATH/bpv7/library/bpP.h
-	$SOURCE_PATH/bpv7/library/cgr.h
-	$SOURCE_PATH/bpv7/library/ext/bae/bae.h
-	$SOURCE_PATH/bpv7/library/ext/bpextensions.c
-	$SOURCE_PATH/bpv7/library/ext/bpq/bpq.h
-	$SOURCE_PATH/bpv7/library/ext/bpsec/bcb.h
-	$SOURCE_PATH/bpv7/library/ext/bpsec/bib.h
-	$SOURCE_PATH/bpv7/library/ext/hcb/hcb.h
-	$SOURCE_PATH/bpv7/library/ext/imc/imc.h
-	$SOURCE_PATH/bpv7/library/ext/meb/meb.h
-	$SOURCE_PATH/bpv7/library/ext/pnb/pnb.h
-	$SOURCE_PATH/bpv7/library/ext/snw/snw.h
-	$SOURCE_PATH/bpv7/ltp/ltpcla.h
-	$SOURCE_PATH/bpv7/saga/saga.h
-	$SOURCE_PATH/bpv7/stcp/stcpcla.h
-	$SOURCE_PATH/bpv7/udp/udpcla.h
-	$SOURCE_PATH/bpv7/utils/bpsecadmin_config.h
-	$SOURCE_PATH/bpv7/utils/jsmn.h
-# CFDP
-	$SOURCE_PATH/cfdp/include/bputa.h
-	$SOURCE_PATH/cfdp/include/cfdp.h
-	$SOURCE_PATH/cfdp/include/cfdpops.h
-	$SOURCE_PATH/cfdp/library/cfdpP.h
-	$SOURCE_PATH/cfdp/utils/bpcp.h
-# ICI
-	$SOURCE_PATH/ici/crypto/csi_debug.h
-	$SOURCE_PATH/ici/include/bulk.h
-	$SOURCE_PATH/ici/include/cbor.h
-	$SOURCE_PATH/ici/include/crc.h
-	$SOURCE_PATH/ici/include/crypto.h
-	$SOURCE_PATH/ici/include/csi.h
-	$SOURCE_PATH/ici/include/ion.h
-	$SOURCE_PATH/ici/include/ionsec.h
-	$SOURCE_PATH/ici/include/lyst.h
-	$SOURCE_PATH/ici/include/memmgr.h
-	$SOURCE_PATH/ici/include/platform_sm.h
-	$SOURCE_PATH/ici/include/platform.h
-	$SOURCE_PATH/ici/include/psm.h
-	$SOURCE_PATH/ici/include/radix.h
-	$SOURCE_PATH/ici/include/rfx.h
-	$SOURCE_PATH/ici/include/sdr.h
-	$SOURCE_PATH/ici/include/sdrhash.h
-	$SOURCE_PATH/ici/include/sdrlist.h
-	$SOURCE_PATH/ici/include/sdrmgt.h
-	$SOURCE_PATH/ici/include/sdrstring.h
-	$SOURCE_PATH/ici/include/sdrtable.h
-	$SOURCE_PATH/ici/include/sdrxn.h
-	$SOURCE_PATH/ici/include/smlist.h
-	$SOURCE_PATH/ici/include/smrbt.h
-	$SOURCE_PATH/ici/include/sptrace.h
-	$SOURCE_PATH/ici/include/zco.h
-	$SOURCE_PATH/ici/library/lystP.h
-	$SOURCE_PATH/ici/library/radixP.h
-	$SOURCE_PATH/ici/sdr/sdrP.h
-# LTP
-	$SOURCE_PATH/ltp/include/ltp.h
-	$SOURCE_PATH/ltp/include/sda.h
-	$SOURCE_PATH/ltp/library/ltpei.h
-	$SOURCE_PATH/ltp/library/ltpP.h
-	$SOURCE_PATH/ltp/udp/udplsa.h
-	)
-
-SCRIPTS=(
-	$SOURCE_PATH/ionstart
-	$SOURCE_PATH/ionstop
-	$SOURCE_PATH/ionstart.awk
-	$SOURCE_PATH/killm
-		)
-
-MANPAGE=(
-# BPv7
-	$SOURCE_PATH/bpv7/doc/pod1/bpadmin.pod
-	$SOURCE_PATH/bpv7/doc/pod1/bpchat.pod
-	$SOURCE_PATH/bpv7/doc/pod1/bpclm.pod
-	$SOURCE_PATH/bpv7/doc/pod1/bpclock.pod
-	$SOURCE_PATH/bpv7/doc/pod1/bpcounter.pod
-	$SOURCE_PATH/bpv7/doc/pod1/bpdriver.pod
-	$SOURCE_PATH/bpv7/doc/pod1/bpecho.pod
-	$SOURCE_PATH/bpv7/doc/pod1/bping.pod
-	$SOURCE_PATH/bpv7/doc/pod1/bplist.pod
-	$SOURCE_PATH/bpv7/doc/pod1/bprecvfile.pod
-	$SOURCE_PATH/bpv7/doc/pod1/bpsendfile.pod
-	$SOURCE_PATH/bpv7/doc/pod1/bpsink.pod
-	$SOURCE_PATH/bpv7/doc/pod1/bpsource.pod
-	$SOURCE_PATH/bpv7/doc/pod1/bpstats.pod
-	$SOURCE_PATH/bpv7/doc/pod1/bptrace.pod
-	$SOURCE_PATH/bpv7/doc/pod1/bptransit.pod
-	$SOURCE_PATH/bpv7/doc/pod1/ipnadmin.pod
-	$SOURCE_PATH/bpv7/doc/pod1/ipnadminep.pod
-	$SOURCE_PATH/bpv7/doc/pod1/ipnfw.pod
-	$SOURCE_PATH/bpv7/doc/pod1/lgagent.pod
-	$SOURCE_PATH/bpv7/doc/pod1/lgsend.pod
-	$SOURCE_PATH/bpv7/doc/pod1/ltpcli.pod
-	$SOURCE_PATH/bpv7/doc/pod1/ltpclo.pod
-	$SOURCE_PATH/bpv7/doc/pod1/stcpcli.pod
-	$SOURCE_PATH/bpv7/doc/pod1/stcpclo.pod
-	$SOURCE_PATH/bpv7/doc/pod1/udpcli.pod
-	$SOURCE_PATH/bpv7/doc/pod1/udpclo.pod
-# CFDP
-	$SOURCE_PATH/cfdp/doc/pod1/bpcp.pod
-	$SOURCE_PATH/cfdp/doc/pod1/bpcpd.pod
-	$SOURCE_PATH/cfdp/doc/pod1/bputa.pod
-	$SOURCE_PATH/cfdp/doc/pod1/cfdpadmin.pod
-	$SOURCE_PATH/cfdp/doc/pod1/cfdpclock.pod
-	$SOURCE_PATH/cfdp/doc/pod1/cfdptest.pod
-	$SOURCE_PATH/cfdp/doc/pod3/cfdp.pod
-	$SOURCE_PATH/cfdp/doc/pod5/cfdprc.pod
-# ICI
-	$SOURCE_PATH/ici/doc/pod1/ionadmin.pod
-	$SOURCE_PATH/ici/doc/pod1/owltsim.pod
-	$SOURCE_PATH/ici/doc/pod1/psmwatch.pod
-	$SOURCE_PATH/ici/doc/pod1/rfxclock.pod
-	$SOURCE_PATH/ici/doc/pod1/sdrwatch.pod
-# LTP
-	$SOURCE_PATH/ltp/doc/pod1/ltpadmin.pod
-	$SOURCE_PATH/ltp/doc/pod1/ltpclock.pod
-	$SOURCE_PATH/ltp/doc/pod1/ltpmeter.pod
-	$SOURCE_PATH/ltp/doc/pod1/udplsi.pod
-	$SOURCE_PATH/ltp/doc/pod1/udplso.pod
-# Restart
-	$SOURCE_PATH/restart/doc/pod1/ionrestart.pod
-	)
-
-TEST_SCRIPTS=(
-	$SOURCE_PATH/tests/runtests
-	$SOURCE_PATH/tests/cleanup
-	$SOURCE_PATH/tests/setacs.sh
-	$SOURCE_PATH/tests/pretest-script
-	# system_up will be link directly to root folder in ion-core
-	#$SOURCE_PATH/system_up
+  # BPv7
+  "$SOURCE_PATH/bpv7/bibe/bibe.h:bpv7"
+  "$SOURCE_PATH/bpv7/bibe/bibeP.h:bpv7"
+  "$SOURCE_PATH/bpv7/bpsec/instr/bpsec_instr.h:bpv7"
+  "$SOURCE_PATH/bpv7/bpsec/policy/bpsec_policy_event.h:bpv7"
+  "$SOURCE_PATH/bpv7/bpsec/policy/bpsec_policy_eventset.h:bpv7"
+  "$SOURCE_PATH/bpv7/bpsec/policy/bpsec_policy_rule.h:bpv7"
+  "$SOURCE_PATH/bpv7/bpsec/policy/bpsec_policy.h:bpv7"
+  "$SOURCE_PATH/bpv7/bpsec/sci/bcb_aes_gcm_sc.h:bpv7"
+  "$SOURCE_PATH/bpv7/bpsec/sci/bib_hmac_sha2_sc.h:bpv7"
+  "$SOURCE_PATH/bpv7/bpsec/sci/ion_test_sc.h:bpv7"
+  "$SOURCE_PATH/bpv7/bpsec/sci/rfc9173_utils.h:bpv7"
+  "$SOURCE_PATH/bpv7/bpsec/sci/sc_util.h:bpv7"
+  "$SOURCE_PATH/bpv7/bpsec/sci/sc_value.h:bpv7"
+  "$SOURCE_PATH/bpv7/bpsec/sci/sci_structs.h:bpv7"
+  "$SOURCE_PATH/bpv7/bpsec/sci/sci_valmap.h:bpv7"
+  "$SOURCE_PATH/bpv7/bpsec/sci/sci.h:bpv7"
+  "$SOURCE_PATH/bpv7/bpsec/utils/bpsec_asb.h:bpv7"
+  "$SOURCE_PATH/bpv7/bpsec/utils/bpsec_util.h:bpv7"
+  "$SOURCE_PATH/bpv7/dtn2/dtn2fw.h:bpv7"
+  "$SOURCE_PATH/bpv7/imc/imcfw.h:bpv7"
+  "$SOURCE_PATH/bpv7/include/bp.h:bpv7"
+  "$SOURCE_PATH/bpv7/include/eureka.h:bpv7"
+  "$SOURCE_PATH/bpv7/ipn/ipnfw.h:bpv7"
+  "$SOURCE_PATH/bpv7/library/bei.h:bpv7"
+  "$SOURCE_PATH/bpv7/library/bpP.h:bpv7"
+  "$SOURCE_PATH/bpv7/library/cgr.h:bpv7"
+  "$SOURCE_PATH/bpv7/library/ext/bae/bae.h:bpv7"
+  "$SOURCE_PATH/bpv7/library/ext/bpextensions.c:bpv7"
+  "$SOURCE_PATH/bpv7/library/ext/bpq/bpq.h:bpv7"
+  "$SOURCE_PATH/bpv7/library/ext/bpsec/bcb.h:bpv7"
+  "$SOURCE_PATH/bpv7/library/ext/bpsec/bib.h:bpv7"
+  "$SOURCE_PATH/bpv7/library/ext/hcb/hcb.h:bpv7"
+  "$SOURCE_PATH/bpv7/library/ext/imc/imc.h:bpv7"
+  "$SOURCE_PATH/bpv7/library/ext/meb/meb.h:bpv7"
+  "$SOURCE_PATH/bpv7/library/ext/pnb/pnb.h:bpv7"
+  "$SOURCE_PATH/bpv7/library/ext/snw/snw.h:bpv7"
+  "$SOURCE_PATH/bpv7/ltp/ltpcla.h:bpv7"
+  "$SOURCE_PATH/bpv7/saga/saga.h:bpv7"
+  "$SOURCE_PATH/bpv7/stcp/stcpcla.h:bpv7"
+  "$SOURCE_PATH/bpv7/udp/udpcla.h:bpv7"
+  "$SOURCE_PATH/bpv7/utils/bpsecadmin_config.h:bpv7"
+  "$SOURCE_PATH/bpv7/utils/jsmn.h:bpv7"
+  # CFDP
+  "$SOURCE_PATH/cfdp/include/bputa.h:cfdp"
+  "$SOURCE_PATH/cfdp/include/cfdp.h:cfdp"
+  "$SOURCE_PATH/cfdp/include/cfdpops.h:cfdp"
+  "$SOURCE_PATH/cfdp/library/cfdpP.h:cfdp"
+  "$SOURCE_PATH/cfdp/utils/bpcp.h:cfdp"
+  # ICI
+  "$SOURCE_PATH/ici/crypto/csi_debug.h:ici"
+  "$SOURCE_PATH/ici/include/bulk.h:ici"
+  "$SOURCE_PATH/ici/include/cbor.h:ici"
+  "$SOURCE_PATH/ici/include/crc.h:ici"
+  "$SOURCE_PATH/ici/include/crypto.h:ici"
+  "$SOURCE_PATH/ici/include/csi.h:ici"
+  "$SOURCE_PATH/ici/include/ion.h:ici"
+  "$SOURCE_PATH/ici/include/ionsec.h:ici"
+  "$SOURCE_PATH/ici/include/lyst.h:ici"
+  "$SOURCE_PATH/ici/include/memmgr.h:ici"
+  "$SOURCE_PATH/ici/include/platform_sm.h:ici"
+  "$SOURCE_PATH/ici/include/platform.h:ici"
+  "$SOURCE_PATH/ici/include/psm.h:ici"
+  "$SOURCE_PATH/ici/include/radix.h:ici"
+  "$SOURCE_PATH/ici/include/rfx.h:ici"
+  "$SOURCE_PATH/ici/include/sdr.h:ici"
+  "$SOURCE_PATH/ici/include/sdrhash.h:ici"
+  "$SOURCE_PATH/ici/include/sdrlist.h:ici"
+  "$SOURCE_PATH/ici/include/sdrmgt.h:ici"
+  "$SOURCE_PATH/ici/include/sdrstring.h:ici"
+  "$SOURCE_PATH/ici/include/sdrtable.h:ici"
+  "$SOURCE_PATH/ici/include/sdrxn.h:ici"
+  "$SOURCE_PATH/ici/include/smlist.h:ici"
+  "$SOURCE_PATH/ici/include/smrbt.h:ici"
+  "$SOURCE_PATH/ici/include/sptrace.h:ici"
+  "$SOURCE_PATH/ici/include/zco.h:ici"
+  "$SOURCE_PATH/ici/library/lystP.h:ici"
+  "$SOURCE_PATH/ici/library/radixP.h:ici"
+  "$SOURCE_PATH/ici/sdr/sdrP.h:ici"
+  # LTP
+  "$SOURCE_PATH/ltp/include/ltp.h:ltp"
+  "$SOURCE_PATH/ltp/include/sda.h:ltp"
+  "$SOURCE_PATH/ltp/library/ltpei.h:ltp"
+  "$SOURCE_PATH/ltp/library/ltpP.h:ltp"
+  "$SOURCE_PATH/ltp/udp/udplsa.h:ltp"
 )
 
-# Loading tests that covers the ion-core function sets
+SCRIPTS=(
+  "$SOURCE_PATH/ionstart"
+  "$SOURCE_PATH/ionstop"
+  "$SOURCE_PATH/ionstart.awk"
+  "$SOURCE_PATH/killm"
+)
+
+MANPAGE=(
+  # BPv7
+  "$SOURCE_PATH/bpv7/doc/pod1/bpadmin.pod:bpv7"
+  "$SOURCE_PATH/bpv7/doc/pod1/bpchat.pod:bpv7"
+  "$SOURCE_PATH/bpv7/doc/pod1/bpclm.pod:bpv7"
+  "$SOURCE_PATH/bpv7/doc/pod1/bpclock.pod:bpv7"
+  "$SOURCE_PATH/bpv7/doc/pod1/bpcounter.pod:bpv7"
+  "$SOURCE_PATH/bpv7/doc/pod1/bpdriver.pod:bpv7"
+  "$SOURCE_PATH/bpv7/doc/pod1/bpecho.pod:bpv7"
+  "$SOURCE_PATH/bpv7/doc/pod1/bping.pod:bpv7"
+  "$SOURCE_PATH/bpv7/doc/pod1/bplist.pod:bpv7"
+  "$SOURCE_PATH/bpv7/doc/pod1/bprecvfile.pod:bpv7"
+  "$SOURCE_PATH/bpv7/doc/pod1/bpsendfile.pod:bpv7"
+  "$SOURCE_PATH/bpv7/doc/pod1/bpsink.pod:bpv7"
+  "$SOURCE_PATH/bpv7/doc/pod1/bpsource.pod:bpv7"
+  "$SOURCE_PATH/bpv7/doc/pod1/bpstats.pod:bpv7"
+  "$SOURCE_PATH/bpv7/doc/pod1/bptrace.pod:bpv7"
+  "$SOURCE_PATH/bpv7/doc/pod1/bptransit.pod:bpv7"
+  "$SOURCE_PATH/bpv7/doc/pod1/ipnadmin.pod:bpv7"
+  "$SOURCE_PATH/bpv7/doc/pod1/ipnadminep.pod:bpv7"
+  "$SOURCE_PATH/bpv7/doc/pod1/ipnfw.pod:bpv7"
+  "$SOURCE_PATH/bpv7/doc/pod1/lgagent.pod:bpv7"
+  "$SOURCE_PATH/bpv7/doc/pod1/lgsend.pod:bpv7"
+  "$SOURCE_PATH/bpv7/doc/pod1/ltpcli.pod:bpv7"
+  "$SOURCE_PATH/bpv7/doc/pod1/ltpclo.pod:bpv7"
+  "$SOURCE_PATH/bpv7/doc/pod1/stcpcli.pod:bpv7"
+  "$SOURCE_PATH/bpv7/doc/pod1/stcpclo.pod:bpv7"
+  "$SOURCE_PATH/bpv7/doc/pod1/udpcli.pod:bpv7"
+  "$SOURCE_PATH/bpv7/doc/pod1/udpclo.pod:bpv7"
+  # CFDP
+  "$SOURCE_PATH/cfdp/doc/pod1/bpcp.pod:cfdp"
+  "$SOURCE_PATH/cfdp/doc/pod1/bpcpd.pod:cfdp"
+  "$SOURCE_PATH/cfdp/doc/pod1/bputa.pod:cfdp"
+  "$SOURCE_PATH/cfdp/doc/pod1/cfdpadmin.pod:cfdp"
+  "$SOURCE_PATH/cfdp/doc/pod1/cfdpclock.pod:cfdp"
+  "$SOURCE_PATH/cfdp/doc/pod1/cfdptest.pod:cfdp"
+  "$SOURCE_PATH/cfdp/doc/pod3/cfdp.pod:cfdp"
+  "$SOURCE_PATH/cfdp/doc/pod5/cfdprc.pod:cfdp"
+  # ICI
+  "$SOURCE_PATH/ici/doc/pod1/ionadmin.pod:ici"
+  "$SOURCE_PATH/ici/doc/pod1/owltsim.pod:ici"
+  "$SOURCE_PATH/ici/doc/pod1/psmwatch.pod:ici"
+  "$SOURCE_PATH/ici/doc/pod1/rfxclock.pod:ici"
+  "$SOURCE_PATH/ici/doc/pod1/sdrwatch.pod:ici"
+  # LTP
+  "$SOURCE_PATH/ltp/doc/pod1/ltpadmin.pod:ltp"
+  "$SOURCE_PATH/ltp/doc/pod1/ltpclock.pod:ltp"
+  "$SOURCE_PATH/ltp/doc/pod1/ltpmeter.pod:ltp"
+  "$SOURCE_PATH/ltp/doc/pod1/udplsi.pod:ltp"
+  "$SOURCE_PATH/ltp/doc/pod1/udplso.pod:ltp"
+  # Restart
+  "$SOURCE_PATH/restart/doc/pod1/ionrestart.pod:restart"
+)
+
+TEST_SCRIPTS=(
+  "$SOURCE_PATH/tests/runtests"
+  "$SOURCE_PATH/tests/cleanup"
+  "$SOURCE_PATH/tests/setacs.sh"
+  "$SOURCE_PATH/tests/pretest-script"
+)
+
 TEST_DIRS=(
-	# Basic CLAs
-	$SOURCE_PATH/demos/bench-udp
-	$SOURCE_PATH/demos/bench-ltp
-	$SOURCE_PATH/demos/bench-stcp
-	# CFDP & LTP
-	$SOURCE_PATH/demos/bench-cfdp
-	# BPTRACE & BPSINK & LTP
-	$SOURCE_PATH/tests/bptrace_terminal_test
-	# BPING & BPECHO & UDP
-	$SOURCE_PATH/tests/bping
-	# To Do: Add more tests to cover function set
+  # Basic CLAs
+  "$SOURCE_PATH/demos/bench-udp"
+  "$SOURCE_PATH/demos/bench-ltp"
+  "$SOURCE_PATH/demos/bench-stcp"
+  # CFDP & LTP
+  "$SOURCE_PATH/demos/bench-cfdp"
+  # BPTRACE & BPSINK & LTP
+  "$SOURCE_PATH/tests/bptrace_terminal_test"
+  # BPING & BPECHO & UDP
+  "$SOURCE_PATH/tests/bping"
 )
 
 # Function to clear the content of a directory
@@ -416,23 +404,24 @@ clear_directory "$INC"
 clear_directory "$OUT_BIN"
 clear_directory "$TESTS"
 
+# Create module subdirectories under src
+mkdir -p "$SRC/ici" "$SRC/bpv7" "$SRC/cfdp" "$SRC/ltp" "$SRC/restart"
+
 # Extract .c files
 echo "Extracting source .c files from $SOURCE_PATH to $SRC"
 count=0
-while [ "x${SOURCES[count]}" != "x" ]
-do
-    # Get the target source file path
-    target="${SOURCES[count]}"
+while [ "x${SOURCES[count]}" != "x" ]; do
+    # Get the target source file path and module
+    IFS=':' read -r target module <<< "${SOURCES[count]}"
     
     # Extract the filename from the full path
     filename=$(basename "$target")
     
     # Destination path
-    destination="$SRC/$filename"
+    destination="$SRC/$module/$filename"
     
-    # Create symbolic link in the src directory
-    if ln -s "$target" "$destination"
-    then
+    # Create symbolic link in the src/module directory
+    if ln -s "$target" "$destination"; then
         echo "Linked $target to $destination"
     else
         echo "ERROR: $target is missing or has moved. Aborting."
@@ -445,10 +434,9 @@ done
 # Extract .h files
 echo "Extracting header .h files from $SOURCE_PATH to $INC"
 count=0
-while [ "x${HEADERS[count]}" != "x" ]
-do
-    # Get the target header file path
-    target="${HEADERS[count]}"
+while [ "x${HEADERS[count]}" != "x" ]; do
+    # Get the target header file path and module
+    IFS=':' read -r target module <<< "${HEADERS[count]}"
     
     # Extract the filename from the full path
     filename=$(basename "$target")
@@ -457,8 +445,7 @@ do
     destination="$INC/$filename"
     
     # Create symbolic link in the INC directory
-    if ln -s "$target" "$destination"
-    then
+    if ln -s "$target" "$destination"; then
         echo "Linked $target to $destination"
     else
         echo "ERROR: $target is missing or has moved. Aborting."
@@ -471,8 +458,7 @@ done
 # Extract ION scripts
 echo "Extracting ION scripts from $SOURCE_PATH to $OUT_BIN"
 count=0
-while [ "x${SCRIPTS[count]}" != "x" ]
-do
+while [ "x${SCRIPTS[count]}" != "x" ]; do
     # Get the target script file path
     target="${SCRIPTS[count]}"
     
@@ -483,8 +469,7 @@ do
     destination="$OUT_BIN/$filename"
     
     # Create symbolic link in the OUT_BIN directory
-    if ln -s "$target" "$destination"
-    then
+    if ln -s "$target" "$destination"; then
         echo "Linked $target to $destination"
     else
         echo "ERROR: $target is missing or has moved. Aborting."
@@ -494,28 +479,22 @@ do
     count=$((count + 1))
 done
 
-
 # Extract man page .pod files
 echo "Linking man page .pod files from $SOURCE_PATH to $SRC/man"
-
-# Create the directory, if it doesn't exist.
 mkdir -p "$SRC/man"
-
 count=0
-while [ "x${MANPAGE[count]}" != "x" ]
-do
-    # Get the target man page file path
-    target="${MANPAGE[count]}"
+while [ "x${MANPAGE[count]}" != "x" ]; do
+    # Get the target man page file path and module
+    IFS=':' read -r target module <<< "${MANPAGE[count]}"
     
     # Extract the filename from the full path
     filename=$(basename "$target")
     
-    # Destination path in $SRC/$MAN
+    # Destination path in $SRC/man
     destination="$SRC/man/$filename"
     
     # Create symbolic link in the MAN directory
-    if ln -s "$target" "$destination"
-    then
+    if ln -s "$target" "$destination"; then
         echo "Linked $target to $destination"
     else
         echo "ERROR: $target is missing or has moved. Aborting."
@@ -525,12 +504,10 @@ do
     count=$((count + 1))
 done
 
-
 # Extract regression test scripts
 echo "Extracting test scripts from $SOURCE_PATH to $TESTS"
 count=0
-while [ "x${TEST_SCRIPTS[count]}" != "x" ]
-do
+while [ "x${TEST_SCRIPTS[count]}" != "x" ]; do
     # Get the target test script file path
     target="${TEST_SCRIPTS[count]}"
     
@@ -541,8 +518,7 @@ do
     destination="$TESTS/$filename"
     
     # Create symbolic link in the TESTS directory
-    if ln -s "$target" "$destination"
-    then
+    if ln -s "$target" "$destination"; then
         echo "Linked $target to $destination"
     else
         echo "ERROR: $target is missing or has moved. Aborting."
@@ -558,22 +534,19 @@ rm -f "$ROOT_DIR/system_up"
 ln -s "$SOURCE_PATH/system_up" "$ROOT_DIR/system_up"
 
 # For MAC, link the sysctl_script.sh to test kernel setting
-if [ "$UNAME_S" = "Darwin" ]
-then
-	echo "Link 'sysctl_script.sh' in root directory"
-	rm -f "$ROOT_DIR/scripts/macos/sysctl_script.sh"
-	ln -s "$SOURCE_PATH/sysctl_script.sh" "$ROOT_DIR/scripts/macos/sysctl_script.sh"
-	echo "Link 'install_macos_sysctl.sh' in root directory"
-	rm -f "$ROOT_DIR/scripts/macos/install_macos_sysctl.sh"
-	ln -s "$SOURCE_PATH/install_macos_sysctl.sh" "$ROOT_DIR/scripts/macos/install_macos_sysctl.sh"
+if [ "$UNAME_S" = "Darwin" ]; then
+  echo "Link 'sysctl_script.sh' in root directory"
+  rm -f "$ROOT_DIR/scripts/macos/sysctl_script.sh"
+  ln -s "$SOURCE_PATH/sysctl_script.sh" "$ROOT_DIR/scripts/macos/sysctl_script.sh"
+  echo "Link 'install_macos_sysctl.sh' in root directory"
+  rm -f "$ROOT_DIR/scripts/macos/install_macos_sysctl.sh"
+  ln -s "$SOURCE_PATH/install_macos_sysctl.sh" "$ROOT_DIR/scripts/macos/install_macos_sysctl.sh"
 fi
 
 # Extract canned test configs
 echo "Linking canned configurations directory 'configs'"
 rm -f "$ROOT_DIR/configs"
-
-if ln -s "$SOURCE_PATH/configs" "$ROOT_DIR/configs"
-then
+if ln -s "$SOURCE_PATH/configs" "$ROOT_DIR/configs"; then
     echo "Linked $SOURCE_PATH/configs to $ROOT_DIR/configs"
 else
     echo "Error: failed to link $SOURCE_PATH/configs to $ROOT_DIR/configs"
@@ -583,8 +556,7 @@ fi
 # Extract test sets
 echo "Extracting test sets from $SOURCE_PATH to $TESTS"
 count=0
-while [ "x${TEST_DIRS[count]}" != "x" ]
-do
+while [ "x${TEST_DIRS[count]}" != "x" ]; do
     # Get the target test set directory path
     target="${TEST_DIRS[count]}"
     
@@ -595,8 +567,7 @@ do
     destination="$TESTS/$filename"
     
     # Create symbolic link in the TESTS directory
-    if ln -s "$target" "$destination"
-    then
+    if ln -s "$target" "$destination"; then
         echo "Linked $target to $destination"
     else
         echo "ERROR: failed to link $target to $destination Aborting."
@@ -606,34 +577,18 @@ do
     count=$((count + 1))
 done
 
-
-#
 # Copy modified ION-core version of bpextension.c to original source code
-# Modified bpextension.c support custom build options in build-list.mk
 echo "Replacing bpextension with customized ion-core version in ./scripts"
 symlink="$INC/bpextensions.c"
 target=$(ls -l "$symlink" | sed 's/.* -> //')
-cp $SCRIPT_DIR/bpextensions-ion-core.c $target
+cp "$SCRIPT_DIR/bpextensions-ion-core.c" "$target"
 echo "Overwritten source file: $target"
 
 echo "Updating path to header file bpsecadmin_config.h in file bpsec_policy_rule.c"
-
-# Resolve the symlink and apply sed to the target file
-# Some sed do not follow symlinks, so use readlink to get the real path
-symlink="$SRC/bpsec_policy_rule.c"
+symlink="$SRC/bpv7/bpsec_policy_rule.c"
 target=$(ls -l "$symlink" | sed 's/.* -> //')
-
-# Output the actual target
-sed $SED_INPLACE 's!#include "../../utils/bpsecadmin_config.h"!#include "bpsecadmin_config.h"!g' $target
-# for freebsd, need to insert '' for sed
-#sed $SED_INPLACE '' 's!#include "../../utils/bpsecadmin_config.h"!#include "bpsecadmin_config.h"!g' $target
-
-echo "Apply modification source file: $target"
+sed $SED_INPLACE 's!#include "../../utils/bpsecadmin_config.h"!#include "bpsecadmin_config.h"!g' "$target"
+echo "Applied modification source file: $target"
 
 echo "Done"
 exit
-
-###################################
-
-
-

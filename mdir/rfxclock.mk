@@ -9,7 +9,7 @@ endif
 #$(info libici.mk has been included, proceed to build.)
 
 SRC_rfxclock := \
-	$(SRC)/rfxclock.c \
+	$(SRC_ICI)/rfxclock.c \
 	$(SRC_libici)
 
 rfxclock:

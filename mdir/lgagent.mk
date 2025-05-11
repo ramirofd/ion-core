@@ -14,7 +14,7 @@ ifndef LIBBP_INCLUDED
 $(error libbp.mk is not found or not included, cannot build.)
 endif
 
-SRC_lgagent := $(SRC)/lgagent.c \
+SRC_lgagent := $(SRC_BPV7)/lgagent.c \
 	$(SRC_libici) \
 	$(SRC_libbp)
 

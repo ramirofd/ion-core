@@ -14,7 +14,7 @@ ifndef LIBBP_INCLUDED
 $(error libbp.mk is not found or not included, cannot build.)
 endif
 
-SRC_lgsend := $(SRC)/lgsend.c \
+SRC_lgsend := $(SRC_BPV7)/lgsend.c \
 	$(SRC_libici) \
 	$(SRC_libbp)
 

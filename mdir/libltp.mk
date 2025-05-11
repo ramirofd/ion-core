@@ -3,7 +3,7 @@
 #
 LIBLTP_INCLUDED = YES
 
-SRC_libltp := $(SRC)/libltp.c \
-	$(SRC)/libltpP.c \
-	$(SRC)/ltpei.c \
-	$(SRC)/libsda.c
+SRC_libltp := $(SRC_LTP)/libltp.c \
+	$(SRC_LTP)/libltpP.c \
+	$(SRC_LTP)/ltpei.c \
+	$(SRC_LTP)/libsda.c

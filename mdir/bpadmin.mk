@@ -14,13 +14,11 @@ ifndef LIBBP_INCLUDED
 $(error libbp.mk is not found or not included, cannot build.)
 endif
 
-SRC_bpadmin := $(SRC)/bpadmin.c \
+SRC_bpadmin := $(SRC_BPV7)/bpadmin.c \
 	$(SRC_libici) \
 	$(SRC_libbp)
-
 
 bpadmin:
 	$(GCC) $(CFLAG) -I$(INC) $(SRC_bpadmin) \
 	$(PLATFORM) \
 	-o $(OUT_BIN)/bpadmin
-

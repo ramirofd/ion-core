@@ -22,7 +22,7 @@ ifndef LIBCFDP_INCLUDED
 $(error libcfdp.mk is not found or not included, cannot build.)
 endif
 
-SRC_cfdpadmin := $(SRC)/cfdpadmin.c \
+SRC_cfdpadmin := $(SRC_CFDP)/cfdpadmin.c \
 	$(SRC_libici) \
 	$(SRC_libbp) \
 	$(SRC_libcfdp)

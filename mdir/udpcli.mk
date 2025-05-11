@@ -14,8 +14,8 @@ ifndef LIBBP_INCLUDED
 $(error libbp.mk is not found or not included, cannot build.)
 endif
 
-SRC_udpcli := $(SRC)/udpcli.c \
-	$(SRC)/libudpcla.c \
+SRC_udpcli := $(SRC_BPV7)/udpcli.c \
+	$(SRC_BPV7)/libudpcla.c \
 	$(SRC_libici) \
 	$(SRC_libbp)
 	

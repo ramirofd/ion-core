@@ -22,7 +22,7 @@ ifndef LIBCFDP_INCLUDED
 $(error libcfdp.mk is not found or not included, cannot build.)
 endif
 
-SRC_bputa := $(SRC)/bputa.c \
+SRC_bputa := $(SRC_CFDP)/bputa.c \
 	$(SRC_libici) \
 	$(SRC_libbp) \
 	$(SRC_libcfdp)

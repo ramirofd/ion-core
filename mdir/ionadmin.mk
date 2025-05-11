@@ -9,7 +9,7 @@ endif
 #$(info libici.mk has been included, proceed to build.)
 
 SRC_ionadmin := \
-	$(SRC)/ionadmin.c \
+	$(SRC_ICI)/ionadmin.c \
 	$(SRC_libici)
 
 ionadmin:
