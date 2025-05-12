@@ -205,13 +205,14 @@ uninstall-lib:
 ## Clean up all build artifacts + all source files extracted from ION open source code
 distclean:
 	$(info Make "distclean" target...)
-	@find $(INC) -mindepth 1 ! -name '.gitkeep' -exec rm -rf {} + > /dev/null
-	@find $(SRC) -mindepth 1 ! -name '.gitkeep' -exec rm -rf {} + > /dev/null
-	@find $(LIB) -mindepth 1 ! -name '.gitkeep' -exec rm -rf {} + > /dev/null
-	@find $(OUT_BIN) -mindepth 1 ! -name '.gitkeep' -exec rm -rf {} + > /dev/null
-	@find $(MAN) -mindepth 1 ! -name '.gitkeep' -exec rm -rf {} + > /dev/null
-	@find $(TESTS) -mindepth 1 ! -name '.gitkeep' -exec rm -rf {} + > /dev/null
-	@rm -f system_up > /dev/null
-	@rm -f configs > /dev/null
-	@rm -f scripts/macOS/install_macos_sysctl.sh > /dev/null
-	@rm -f scripts/macOS/sysctl_script.sh > /dev/null
+	@echo "Removing build artifacts and extracted ION source files..."
+	@find $(LIB) -mindepth 1 ! -name '.gitkeep' -exec rm -rf {} + > /dev/null || true
+	@find $(OUT_BIN) -type f ! -name '.gitkeep' ! -name 'ionstart' ! -name 'ionstart.awk' ! -name 'ionstop' ! -name 'killm' -exec rm -rf {} + > /dev/null || true
+	@find $(MAN) -mindepth 1 ! -name '.gitkeep' -exec rm -rf {} + > /dev/null || true
+	@find $(SRC) -type l -exec rm -f {} + > /dev/null || true
+	@find $(INC) -type l -exec rm -f {} + > /dev/null || true
+	@find $(TESTS) -type l -exec rm -f {} + > /dev/null || true
+	@rm -rf $(SRC)/man > /dev/null || true
+	@rm -rf tmp > /dev/null || true
+	@rm -f system_up configs scripts/macOS/install_macos_sysctl.sh scripts/macOS/sysctl_script.sh > /dev/null || true
+	@echo "Distclean complete."

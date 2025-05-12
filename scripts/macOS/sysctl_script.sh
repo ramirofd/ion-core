@@ -1,1 +1,0 @@
-/Users/jgao/iondev/ion-core-dev/tmp/ion-open-source-4.1.3s/sysctl_script.sh
