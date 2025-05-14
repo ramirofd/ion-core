@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.10)
 project(ION-Core-ICI VERSION 4.1.3 LANGUAGES C)
 
+# Debug: Print CMAKE_SOURCE_DIR
+message("CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
+
 # Default installation path
 set(CMAKE_INSTALL_PREFIX /usr/local CACHE PATH "Installation prefix")
 
@@ -46,34 +49,6 @@ if(ENABLE_IMC_EXT)
   add_definitions(-DIMC_EXT)
 endif()
 
-# Check for extract.sh
-if(NOT EXISTS "${CMAKE_SOURCE_DIR}/scripts/extract.sh")
-  message(FATAL_ERROR "extract.sh not found in ${CMAKE_SOURCE_DIR}/scripts. Please ensure the script is present.")
-endif()
-
-# Source extraction (run extract.sh to create symbolic links and modify files)
-set(ION_DTN_REPO_PATH "" CACHE PATH "Path to ION-DTN repository")
-if(ION_DTN_REPO_PATH)
-  set(EXTRACT_COMMAND ${CMAKE_SOURCE_DIR}/scripts/extract.sh ${ION_DTN_REPO_PATH})
-else()
-  set(EXTRACT_COMMAND ${CMAKE_SOURCE_DIR}/scripts/extract.sh)
-endif()
-add_custom_command(
-  OUTPUT 
-    ${CMAKE_SOURCE_DIR}/src/ici
-    ${CMAKE_SOURCE_DIR}/src/bpsec_policy_rule.c
-    ${CMAKE_SOURCE_DIR}/inc/bpextensions.c
-  COMMAND ${EXTRACT_COMMAND}
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-  COMMENT "Running scripts/extract.sh to create ICI source symbolic links and modify BP files"
-)
-add_custom_target(extract_ici 
-  DEPENDS 
-    ${CMAKE_SOURCE_DIR}/src/ici
-    ${CMAKE_SOURCE_DIR}/src/bpsec_policy_rule.c
-    ${CMAKE_SOURCE_DIR}/inc/bpextensions.c
-)
-
 # Define directories
 set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
 set(INC_DIR ${CMAKE_SOURCE_DIR}/inc)
@@ -81,8 +56,36 @@ set(LIB_DIR ${CMAKE_SOURCE_DIR}/lib)
 set(BIN_DIR ${CMAKE_SOURCE_DIR}/bin)
 set(MAN_DIR ${CMAKE_SOURCE_DIR}/man)
 
-# ICI source files (assumes all .c files in src/ici)
-file(GLOB ICI_SOURCES ${SRC_DIR}/ici/*.c)
+# ICI source files (based on libici.mk)
+set(ICI_SOURCES
+  ${SRC_DIR}/ici/bulk.c
+  ${SRC_DIR}/ici/csi.c
+  ${SRC_DIR}/ici/cbor.c
+  ${SRC_DIR}/ici/crc.c
+  ${SRC_DIR}/ici/ion.c
+  ${SRC_DIR}/ici/ionsec.c
+  ${SRC_DIR}/ici/lyst.c
+  ${SRC_DIR}/ici/memmgr.c
+  ${SRC_DIR}/ici/platform_sm.c
+  ${SRC_DIR}/ici/platform.c
+  ${SRC_DIR}/ici/psm.c
+  ${SRC_DIR}/ici/radix.c
+  ${SRC_DIR}/ici/rfx.c
+  ${SRC_DIR}/ici/smlist.c
+  ${SRC_DIR}/ici/smrbt.c
+  ${SRC_DIR}/ici/sptrace.c
+  ${SRC_DIR}/ici/zco.c
+  ${SRC_DIR}/ici/sdrcatlg.c
+  ${SRC_DIR}/ici/sdrhash.c
+  ${SRC_DIR}/ici/sdrlist.c
+  ${SRC_DIR}/ici/sdrmgt.c
+  ${SRC_DIR}/ici/sdrstring.c
+  ${SRC_DIR}/ici/sdrtable.c
+  ${SRC_DIR}/ici/sdrxn.c
+)
+if(NOT ICI_SOURCES)
+  message(FATAL_ERROR "No ICI source files defined. Ensure extract.sh was run manually to populate ${SRC_DIR}/ici.")
+endif()
 
 # Static library
 add_library(icicore_static STATIC ${ICI_SOURCES})
@@ -91,7 +94,6 @@ set_target_properties(icicore_static PROPERTIES
   OUTPUT_NAME icicore
   ARCHIVE_OUTPUT_DIRECTORY ${LIB_DIR}
 )
-add_dependencies(icicore_static extract_ici)
 
 # Shared library
 add_library(icicore_shared SHARED ${ICI_SOURCES})
@@ -101,26 +103,26 @@ set_target_properties(icicore_shared PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY ${LIB_DIR}
 )
 target_link_libraries(icicore_shared PRIVATE m pthread)
-add_dependencies(icicore_shared extract_ici)
 
-# ICI executables (from build-list.mk)
+# ICI executables (from build-list.mk, sourced from src/ici)
 set(ICI_PROGRAMS
   ionadmin
   ionwarn
   rfxclock
-  ionrestart
   psmwatch
   sdrwatch
 )
 
 foreach(PROG IN LISTS ICI_PROGRAMS)
-  add_executable(${PROG} ${SRC_DIR}/${PROG}.c)
+  if(NOT EXISTS "${SRC_DIR}/ici/${PROG}.c")
+    message(FATAL_ERROR "Source file ${SRC_DIR}/ici/${PROG}.c not found. Ensure extract.sh was run manually to populate ${SRC_DIR}/ici.")
+  endif()
+  add_executable(${PROG} ${SRC_DIR}/ici/${PROG}.c)
   target_include_directories(${PROG} PRIVATE ${INC_DIR})
   target_link_libraries(${PROG} PRIVATE icicore_static m pthread)
   set_target_properties(${PROG} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR}
   )
-  add_dependencies(${PROG} extract_ici)
 endforeach()
 
 # Installation
@@ -156,21 +158,26 @@ add_custom_target(man
 
 # Clean target
 add_custom_target(ici_clean
-  COMMAND ${CMAKE_COMMAND} -E remove_directory ${LIB_DIR}
-  COMMAND ${CMAKE_COMMAND} -E remove_directory ${BIN_DIR}
-  COMMAND ${CMAKE_COMMAND} -E remove_directory ${MAN_DIR}
-  COMMENT "Cleaning ICI build artifacts"
+  COMMAND ${CMAKE_COMMAND} -E remove -f ${LIB_DIR}/* !${LIB_DIR}/.gitkeep
+  COMMAND ${CMAKE_COMMAND} -E remove -f ${BIN_DIR}/* !${BIN_DIR}/.gitkeep !${BIN_DIR}/ionstart !${BIN_DIR}/ionstart.awk !${BIN_DIR}/ionstop !${BIN_DIR}/killm
+  COMMAND ${CMAKE_COMMAND} -E remove -f ${MAN_DIR}/* !${MAN_DIR}/.gitkeep
+  COMMENT "Cleaning ICI build artifacts while preserving .gitkeep files"
 )
 
 # Distclean target
 add_custom_target(distclean
-  COMMAND ${CMAKE_COMMAND} -E remove_directory ${SRC_DIR}/ici
-  COMMAND ${CMAKE_COMMAND} -E remove_directory ${LIB_DIR}
-  COMMAND ${CMAKE_COMMAND} -E remove_directory ${BIN_DIR}
-  COMMAND ${CMAKE_COMMAND} -E remove_directory ${MAN_DIR}
-  COMMAND ${CMAKE_COMMAND} -E remove ${CMAKE_SOURCE_DIR}/system_up
-  COMMAND ${CMAKE_COMMAND} -E remove ${CMAKE_SOURCE_DIR}/configs
-  COMMAND ${CMAKE_COMMAND} -E remove ${CMAKE_SOURCE_DIR}/scripts/macOS/install_macos_sysctl.sh
-  COMMAND ${CMAKE_COMMAND} -E remove ${CMAKE_SOURCE_DIR}/scripts/macOS/sysctl_script.sh
-  COMMENT "Removing all ICI build and source artifacts"
+  COMMAND ${CMAKE_COMMAND} -E echo "Removing build artifacts..."
+  COMMAND ${CMAKE_COMMAND} -E remove -f ${LIB_DIR}/* !${LIB_DIR}/.gitkeep
+  COMMAND ${CMAKE_COMMAND} -E remove -f ${BIN_DIR}/* !${BIN_DIR}/.gitkeep !${BIN_DIR}/ionstart !${BIN_DIR}/ionstart.awk !${BIN_DIR}/ionstop !${BIN_DIR}/killm
+  COMMAND ${CMAKE_COMMAND} -E remove -f ${MAN_DIR}/* !${MAN_DIR}/.gitkeep
+  COMMENT "Removing ICI build artifacts while preserving .gitkeep files"
+)
+
+# Uninstall target
+add_custom_target(uninstall
+  COMMAND ${CMAKE_COMMAND} -E remove ${CMAKE_INSTALL_PREFIX}/lib/libicicore.a ${CMAKE_INSTALL_PREFIX}/lib/libicicore.so
+  COMMAND ${CMAKE_COMMAND} -E remove ${CMAKE_INSTALL_PREFIX}/bin/ionadmin ${CMAKE_INSTALL_PREFIX}/bin/ionwarn ${CMAKE_INSTALL_PREFIX}/bin/rfxclock ${CMAKE_INSTALL_PREFIX}/bin/psmwatch ${CMAKE_INSTALL_PREFIX}/bin/sdrwatch
+  COMMAND ${CMAKE_COMMAND} -E remove ${CMAKE_INSTALL_PREFIX}/bin/ionstart ${CMAKE_INSTALL_PREFIX}/bin/ionstart.awk ${CMAKE_INSTALL_PREFIX}/bin/ionstop ${CMAKE_INSTALL_PREFIX}/bin/killm
+  COMMAND ${CMAKE_COMMAND} -E remove ${CMAKE_INSTALL_PREFIX}/share/man/man1/ionadmin.1 ${CMAKE_INSTALL_PREFIX}/share/man/man1/ionwarn.1 ${CMAKE_INSTALL_PREFIX}/share/man/man1/rfxclock.1 ${CMAKE_INSTALL_PREFIX}/share/man/man1/psmwatch.1 ${CMAKE_INSTALL_PREFIX}/share/man/man1/sdrwatch.1
+  COMMENT "Uninstalling ICI module files from ${CMAKE_INSTALL_PREFIX}"
 )
