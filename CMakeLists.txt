@@ -113,6 +113,14 @@ set(ICI_PROGRAMS
   sdrwatch
 )
 
+# ICI programs with man pages (excludes ionwarn)
+set(ICI_MAN_PROGRAMS
+  ionadmin
+  rfxclock
+  psmwatch
+  sdrwatch
+)
+
 foreach(PROG IN LISTS ICI_PROGRAMS)
   if(NOT EXISTS "${SRC_DIR}/ici/${PROG}.c")
     message(FATAL_ERROR "Source file ${SRC_DIR}/ici/${PROG}.c not found. Ensure extract.sh was run manually to populate ${SRC_DIR}/ici.")
@@ -124,6 +132,22 @@ foreach(PROG IN LISTS ICI_PROGRAMS)
     RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR}
   )
 endforeach()
+
+# Man pages
+set(MAN_PAGES
+  ${MAN_DIR}/ionadmin.1.gz
+  ${MAN_DIR}/rfxclock.1.gz
+  ${MAN_DIR}/psmwatch.1.gz
+  ${MAN_DIR}/sdrwatch.1.gz
+)
+add_custom_command(
+  OUTPUT ${MAN_PAGES}
+  COMMAND ${CMAKE_SOURCE_DIR}/scripts/make-man-pages.sh ${SRC_DIR}/man "${ICI_MAN_PROGRAMS}"
+  DEPENDS ${SRC_DIR}/man/ionadmin.pod ${SRC_DIR}/man/rfxclock.pod ${SRC_DIR}/man/psmwatch.pod ${SRC_DIR}/man/sdrwatch.pod
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  COMMENT "Generating man pages for ICI programs (ionadmin, rfxclock, psmwatch, sdrwatch)"
+)
+add_custom_target(man DEPENDS ${MAN_PAGES})
 
 # Installation
 install(TARGETS icicore_static
@@ -143,17 +167,9 @@ install(FILES
   DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
   OPTIONAL
 )
-if(EXISTS ${MAN_DIR})
-  install(DIRECTORY ${MAN_DIR}/
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1
-    FILES_MATCHING PATTERN "*"
-  )
-endif()
-
-# Man pages
-add_custom_target(man
-  COMMAND ${CMAKE_SOURCE_DIR}/scripts/make-man-pages.sh ${SRC_DIR}/man "${ICI_PROGRAMS}"
-  COMMENT "Generating man pages for ICI programs"
+install(FILES ${MAN_PAGES}
+  DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1
+  OPTIONAL
 )
 
 # Clean target
@@ -178,6 +194,6 @@ add_custom_target(uninstall
   COMMAND ${CMAKE_COMMAND} -E remove ${CMAKE_INSTALL_PREFIX}/lib/libicicore.a ${CMAKE_INSTALL_PREFIX}/lib/libicicore.so
   COMMAND ${CMAKE_COMMAND} -E remove ${CMAKE_INSTALL_PREFIX}/bin/ionadmin ${CMAKE_INSTALL_PREFIX}/bin/ionwarn ${CMAKE_INSTALL_PREFIX}/bin/rfxclock ${CMAKE_INSTALL_PREFIX}/bin/psmwatch ${CMAKE_INSTALL_PREFIX}/bin/sdrwatch
   COMMAND ${CMAKE_COMMAND} -E remove ${CMAKE_INSTALL_PREFIX}/bin/ionstart ${CMAKE_INSTALL_PREFIX}/bin/ionstart.awk ${CMAKE_INSTALL_PREFIX}/bin/ionstop ${CMAKE_INSTALL_PREFIX}/bin/killm
-  COMMAND ${CMAKE_COMMAND} -E remove ${CMAKE_INSTALL_PREFIX}/share/man/man1/ionadmin.1 ${CMAKE_INSTALL_PREFIX}/share/man/man1/ionwarn.1 ${CMAKE_INSTALL_PREFIX}/share/man/man1/rfxclock.1 ${CMAKE_INSTALL_PREFIX}/share/man/man1/psmwatch.1 ${CMAKE_INSTALL_PREFIX}/share/man/man1/sdrwatch.1
+  COMMAND ${CMAKE_COMMAND} -E remove ${CMAKE_INSTALL_PREFIX}/share/man/man1/ionadmin.1.gz ${CMAKE_INSTALL_PREFIX}/share/man/man1/rfxclock.1.gz ${CMAKE_INSTALL_PREFIX}/share/man/man1/psmwatch.1.gz ${CMAKE_INSTALL_PREFIX}/share/man/man1/sdrwatch.1.gz
   COMMENT "Uninstalling ICI module files from ${CMAKE_INSTALL_PREFIX}"
 )
