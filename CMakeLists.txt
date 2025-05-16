@@ -133,20 +133,34 @@ foreach(PROG IN LISTS ICI_PROGRAMS)
   )
 endforeach()
 
-# Man pages
-set(MAN_PAGES
-  ${MAN_DIR}/ionadmin.1.gz
-  ${MAN_DIR}/rfxclock.1.gz
-  ${MAN_DIR}/psmwatch.1.gz
-  ${MAN_DIR}/sdrwatch.1.gz
-)
-add_custom_command(
-  OUTPUT ${MAN_PAGES}
-  COMMAND ${CMAKE_SOURCE_DIR}/scripts/make-man-pages.sh ${SRC_DIR}/man "${ICI_MAN_PROGRAMS}"
-  DEPENDS ${SRC_DIR}/man/ionadmin.pod ${SRC_DIR}/man/rfxclock.pod ${SRC_DIR}/man/psmwatch.pod ${SRC_DIR}/man/sdrwatch.pod
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-  COMMENT "Generating man pages for ICI programs (ionadmin, rfxclock, psmwatch, sdrwatch)"
-)
+# Man pages generation using pod2man
+set(MAN_PAGES)
+foreach(PROG IN LISTS ICI_MAN_PROGRAMS)
+  set(POD_FILE ${SRC_DIR}/man/${PROG}.pod)
+  set(MAN_FILE ${MAN_DIR}/${PROG}.1)
+  set(MAN_GZ_FILE ${MAN_DIR}/${PROG}.1.gz)
+  list(APPEND MAN_PAGES ${MAN_GZ_FILE})
+
+  # Generate .1 file from .pod using pod2man
+  add_custom_command(
+    OUTPUT ${MAN_FILE}
+    COMMAND pod2man --section=1 --center="ION-Core Manual" --release="ION-Core ${PROJECT_VERSION}" ${POD_FILE} ${MAN_FILE}
+    DEPENDS ${POD_FILE}
+    COMMENT "Generating man page ${MAN_FILE}"
+    VERBATIM
+  )
+
+  # Compress .1 file to .gz
+  add_custom_command(
+    OUTPUT ${MAN_GZ_FILE}
+    COMMAND gzip -f -c ${MAN_FILE} > ${MAN_GZ_FILE}
+    DEPENDS ${MAN_FILE}
+    COMMENT "Compressing man page to ${MAN_GZ_FILE}"
+    VERBATIM
+  )
+endforeach()
+
+# Custom target to build all man pages
 add_custom_target(man DEPENDS ${MAN_PAGES})
 
 # Installation
@@ -169,7 +183,7 @@ install(FILES
 )
 install(FILES ${MAN_PAGES}
   DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1
-  OPTIONAL
+  PERMISSIONS OWNER_READ GROUP_READ WORLD_READ
 )
 
 # Clean target
@@ -182,11 +196,16 @@ add_custom_target(ici_clean
 
 # Distclean target
 add_custom_target(distclean
-  COMMAND ${CMAKE_COMMAND} -E echo "Removing build artifacts..."
-  COMMAND ${CMAKE_COMMAND} -E remove -f ${LIB_DIR}/* !${LIB_DIR}/.gitkeep
-  COMMAND ${CMAKE_COMMAND} -E remove -f ${BIN_DIR}/* !${BIN_DIR}/.gitkeep !${BIN_DIR}/ionstart !${BIN_DIR}/ionstart.awk !${BIN_DIR}/ionstop !${BIN_DIR}/killm
-  COMMAND ${CMAKE_COMMAND} -E remove -f ${MAN_DIR}/* !${MAN_DIR}/.gitkeep
-  COMMENT "Removing ICI build artifacts while preserving .gitkeep files"
+  COMMAND find ${INC_DIR} -mindepth 1 ! -name '.gitkeep' -delete
+  COMMAND find ${SRC_DIR} -mindepth 1 ! -name '.gitkeep' -delete
+  COMMAND find ${LIB_DIR} -mindepth 1 ! -name '.gitkeep' -delete
+  COMMAND find ${BIN_DIR} -mindepth 1 ! -name '.gitkeep' -delete
+  COMMAND find ${MAN_DIR} -mindepth 1 ! -name '.gitkeep' -delete
+  COMMAND ${CMAKE_COMMAND} -E remove -f ${CMAKE_SOURCE_DIR}/system_up
+  COMMAND ${CMAKE_COMMAND} -E remove -f ${CMAKE_SOURCE_DIR}/configs
+  COMMAND ${CMAKE_COMMAND} -E remove -f ${CMAKE_SOURCE_DIR}/scripts/macOS/install_macos_sysctl.sh
+  COMMAND ${CMAKE_COMMAND} -E remove -f ${CMAKE_SOURCE_DIR}/scripts/macOS/sysctl_script.sh
+  COMMENT "Removing all build artifacts and extracted source files while preserving .gitkeep files"
 )
 
 # Uninstall target
