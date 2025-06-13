@@ -36,6 +36,8 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
 endif()
 
 # Compiler flags (from Makefile)
+add_definitions(-DVNAME=ION-CORE-4.1.3s) # Define VNAME macro
+
 add_compile_options(-g -Wall -DBP_EXTENDED)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC") # For shared libraries
 
