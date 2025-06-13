@@ -358,6 +358,7 @@ MANPAGE=(
   "$SOURCE_PATH/bpv7/doc/pod1/bpstats.pod:bpv7"
   "$SOURCE_PATH/bpv7/doc/pod1/bptrace.pod:bpv7"
   "$SOURCE_PATH/bpv7/doc/pod1/bptransit.pod:bpv7"
+  "$SOURCE_PATH/bpv7/doc/pod1/bpversion.pod:bpv7"
   "$SOURCE_PATH/bpv7/doc/pod1/ipnadmin.pod:bpv7"
   "$SOURCE_PATH/bpv7/doc/pod1/ipnadminep.pod:bpv7"
   "$SOURCE_PATH/bpv7/doc/pod1/ipnfw.pod:bpv7"

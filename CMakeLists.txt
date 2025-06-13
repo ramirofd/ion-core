@@ -381,15 +381,15 @@ install(TARGETS ${ALL_PROGRAMS}
 
 # Man Pages (only programs with .pod files)
 set(MAN_PROGRAMS
-  ionadmin
-  rfxclock
-  psmwatch
-  sdrwatch
+  ${ICI_PROGRAMS}
   ${BP_EXECUTABLES}
   ${LTP_PROGRAMS}
   ${CFDP_PROGRAMS}
   ionrestart
 )
+# Exclude ionwarn, ltpdeliv from MAN Pages
+list(REMOVE_ITEM MAN_PROGRAMS ionwarn ltpdeliv)
+
 
 # Man pages generation using pod2man
 set(MAN_PAGES)
@@ -490,7 +490,18 @@ add_custom_target(distclean
   COMMENT "Removing all build artifacts and extracted source files while preserving .gitkeep files"
 )
 
-# Uninstall target
+# Generate list of executable paths for uninstall
+set(ALL_PROGRAMS_FILES)
+foreach(PROG IN LISTS ALL_PROGRAMS)
+  list(APPEND ALL_PROGRAMS_FILES ${CMAKE_INSTALL_PREFIX}/bin/${PROG})
+endforeach()
+
+# Generate list of man page paths for uninstall
+set(MAN_PAGES_FILES)
+foreach(PROG IN LISTS MAN_PROGRAMS)
+  list(APPEND MAN_PAGES_FILES ${CMAKE_INSTALL_PREFIX}/share/man/man1/${PROG}.1.gz)
+endforeach()
+
 add_custom_target(uninstall
   COMMAND ${CMAKE_COMMAND} -E remove -f
     ${CMAKE_INSTALL_PREFIX}/lib/libicicore.a
@@ -502,13 +513,12 @@ add_custom_target(uninstall
     ${CMAKE_INSTALL_PREFIX}/lib/libcfdpcore.a
     ${CMAKE_INSTALL_PREFIX}/lib/libcfdpcore.so
   COMMAND ${CMAKE_COMMAND} -E remove -f
-    ${CMAKE_INSTALL_PREFIX}/bin/$<JOIN:${ALL_PROGRAMS}, ${CMAKE_INSTALL_PREFIX}/bin/>
-  COMMAND ${CMAKE_COMMAND} -E remove -f
+    ${ALL_PROGRAMS_FILES}
     ${CMAKE_INSTALL_PREFIX}/bin/ionstart
     ${CMAKE_INSTALL_PREFIX}/bin/ionstart.awk
     ${CMAKE_INSTALL_PREFIX}/bin/ionstop
     ${CMAKE_INSTALL_PREFIX}/bin/killm
   COMMAND ${CMAKE_COMMAND} -E remove -f
-    ${CMAKE_INSTALL_PREFIX}/share/man/man1/$<JOIN:${MAN_PROGRAMS}, ${CMAKE_INSTALL_PREFIX}/share/man/man1/>.1.gz
+    ${MAN_PAGES_FILES}
   COMMENT "Uninstalling ION-Core: libraries, binaries, scripts, man pages"
 )

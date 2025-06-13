@@ -16,9 +16,11 @@
   - [Building static and dynamic library](#building-static-and-dynamic-library)
   - [Prototype: macOS Build](#prototype-macos-build)
   - [Prototype: FreeBSD Build Considerations](#prototype-freebsd-build-considerations)
+  - [Prototype: CMake Build System](#prototype-cmake-build-system)
   - [Contributing Code](#contributing-code)
   - [WSL2 Networking Issue](#wsl2-networking-issue)
   - [Release Notes](#release-notes)
+      - [Tag: `4.1.3s-a.1`](#tag-413s-a1)
       - [Tag: `4.1.3`](#tag-413)
       - [Tag: `4.1.2b`](#tag-412b)
       - [Tag: `4.1.2a`](#tag-412a)
@@ -280,6 +282,12 @@ This set of minimum values are sufficient to pass the regression tests under the
 
 1. The default make command for FreeBSD is `bmake.` ION require `gmake`. So you can either invoke `gmake` or create a symbolic link to `gmake` as `make`.
 2. Also the default bash installation locaiton is `/usr/local/bin/bash`. Current ION's test script is hardcoded to the directory `/bin/bash`. You can create a symbolic link of the installed `bash` binary in `/bin`.
+
+## Prototype: CMake Build System
+
+A CMake build prototype is available for ion-core-4.1.3s. Please read the [build instructions.](CMake-Prototype-Instruction.md)
+
+This prototype is only tested with all the default build options as is. If you change any of them, it may not work for this prototype. Future updates will improve the CMake build until it becomes a fully support build options.
 
 ## Contributing Code
 
