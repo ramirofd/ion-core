@@ -59,9 +59,37 @@ set(MAN_DIR ${CMAKE_SOURCE_DIR}/man)
 #
 # ICI source files
 #
-file(GLOB ICI_ALL_C_FILES
-  ${SRC_DIR}/ici/*.c
+set(ICI_SOURCES
+  ${SRC_DIR}/ici/bulk.c
+  ${SRC_DIR}/ici/csi.c
+  ${SRC_DIR}/ici/ionsec.c
+  ${SRC_DIR}/ici/memmgr.c
+  ${SRC_DIR}/ici/platform_sm.c
+  ${SRC_DIR}/ici/radix.c
+  ${SRC_DIR}/ici/sdrcatlg.c
+  ${SRC_DIR}/ici/sdrmgt.c
+  ${SRC_DIR}/ici/smrbt.c
+  ${SRC_DIR}/ici/cbor.c
+  ${SRC_DIR}/ici/owltsim.c
+  ${SRC_DIR}/ici/psm.c
+  ${SRC_DIR}/ici/rfx.c
+  ${SRC_DIR}/ici/sdrhash.c
+  ${SRC_DIR}/ici/sdrstring.c
+  ${SRC_DIR}/ici/sdrxn.c
+  ${SRC_DIR}/ici/sptrace.c
+  ${SRC_DIR}/ici/crc.c
+  ${SRC_DIR}/ici/ion.c
+  ${SRC_DIR}/ici/lyst.c
+  ${SRC_DIR}/ici/platform.c
+  ${SRC_DIR}/ici/sdrlist.c
+  ${SRC_DIR}/ici/sdrtable.c
+  ${SRC_DIR}/ici/smlist.c
+  ${SRC_DIR}/ici/zco.c
 )
+
+if(NOT ICI_SOURCES)
+  message(FATAL_ERROR "No ICI source files defined. Ensure extract.sh was run manually to populate ${SRC_DIR}/ici.")
+endif()
 
 # List of known ICI executables (not to include in library)
 set(ICI_PROGRAMS
@@ -72,21 +100,20 @@ set(ICI_PROGRAMS
   sdrwatch
 )
 
-# Build the actual list of library sources by excluding the above
-set(ICI_SOURCES ${ICI_ALL_C_FILES})
-foreach(prog IN LISTS ICI_PROGRAMS)
-  list(REMOVE_ITEM ICI_SOURCES ${SRC_DIR}/ici/${prog}.c)
-endforeach()
-
 # 
 # LTP source files
 #
-file(GLOB LTP_ALL_C_FILES
-  ${SRC_DIR}/ltp/*.c
+set(LTP_SOURCES
+  ${SRC_DIR}/ltp/libltp.c
+  ${SRC_DIR}/ltp/libltpP.c
+  ${SRC_DIR}/ltp/libsda.c
+  ${SRC_DIR}/ltp/libudplsa.c
+  ${SRC_DIR}/ltp/ltpei.c
 )
 
-# Exclude ltpextensions.c from direct compilation
-list(FILTER LTP_ALL_C_FILES EXCLUDE REGEX "ltpextensions\\.c$")
+if(NOT LTP_SOURCES)
+  message(FATAL_ERROR "No LTP source files defined. Ensure extract.sh was run manually to populate ${SRC_DIR}/ltp.")
+endif()
 
 # Known LTP executables (exclude these from library)
 set(LTP_PROGRAMS
@@ -95,20 +122,55 @@ set(LTP_PROGRAMS
   ltpmeter
   udplsi
   udplso
+  ltpdeliv
+  ltpcli
+  ltpclo
 )
-
-# Filter out program files from source list
-set(LTP_SOURCES ${LTP_ALL_C_FILES})
-foreach(prog IN LISTS LTP_PROGRAMS)
-  list(REMOVE_ITEM LTP_SOURCES ${SRC_DIR}/ltp/${prog}.c)
-endforeach()
 
 #
 # BP source files (based on libbp.mk and extract.sh output)
 #
-file(GLOB BP_SOURCES
-  ${SRC_DIR}/bpv7/*.c
+set(BP_SOURCES
+  ${SRC_DIR}/bpv7/bae.c
+  ${SRC_DIR}/bpv7/bpsec_instr.c
+  ${SRC_DIR}/bpv7/bcb_aes_gcm_sc.c
+  ${SRC_DIR}/bpv7/bpsec_policy.c
+  ${SRC_DIR}/bpv7/meb.c
+  ${SRC_DIR}/bpv7/bcb.c
+  ${SRC_DIR}/bpv7/bpsec_policy_event.c
+  ${SRC_DIR}/bpv7/libbp.c
+  ${SRC_DIR}/bpv7/pnb.c
+  ${SRC_DIR}/bpv7/bei.c
+  ${SRC_DIR}/bpv7/bpsec_policy_eventset.c
+  ${SRC_DIR}/bpv7/eureka.c
+  ${SRC_DIR}/bpv7/libbpP.c
+  ${SRC_DIR}/bpv7/rfc9173_utils.c
+  ${SRC_DIR}/bpv7/bib.c
+  ${SRC_DIR}/bpv7/bpsec_policy_rule.c
+  ${SRC_DIR}/bpv7/hcb.c          
+  ${SRC_DIR}/bpv7/libcgr.c      
+  ${SRC_DIR}/bpv7/saga.c
+  ${SRC_DIR}/bpv7/bibe.c
+  ${SRC_DIR}/bpv7/bpsec_util.c
+  ${SRC_DIR}/bpv7/imc.c
+  ${SRC_DIR}/bpv7/libimcfw.c
+  ${SRC_DIR}/bpv7/sci.c
+  ${SRC_DIR}/bpv7/bib_hmac_sha2_sc.c
+  ${SRC_DIR}/bpv7/ion_test_sc.c
+  ${SRC_DIR}/bpv7/libipnfw.c
+  ${SRC_DIR}/bpv7/sci_valmap.c
+  ${SRC_DIR}/bpv7/bpq.c
+  ${SRC_DIR}/bpv7/libstcpcla.c
+  ${SRC_DIR}/bpv7/sc_util.c
+  ${SRC_DIR}/bpv7/libudpcla.c
+  ${SRC_DIR}/bpv7/sc_value.c
+  ${SRC_DIR}/bpv7/bpsec_asb.c
+  ${SRC_DIR}/bpv7/snw.c
 )
+
+if(NOT BP_SOURCES)
+  message(FATAL_ERROR "No BP source files defined. Ensure extract.sh was run manually to populate ${SRC_DIR}/bpv7.")
+endif()
 
 # Filter out test programs for separate executable targets
 set(BP_EXECUTABLES
@@ -116,8 +178,6 @@ set(BP_EXECUTABLES
   bpclm 
   bpclock 
   bpversion 
-  ltpcli 
-  ltpclo 
   stcpcli 
   stcpclo 
   udpcli 
@@ -142,17 +202,19 @@ set(BP_EXECUTABLES
   lgsend
 )
 
-# Remove these from BP_SOURCES for library build
-foreach(prog IN LISTS BP_EXECUTABLES)
-  list(REMOVE_ITEM BP_SOURCES ${SRC_DIR}/bpv7/${prog}.c)
-endforeach()
-
 #
 # CFDP source files
 #
-file(GLOB CFDP_ALL_C_FILES
-  ${SRC_DIR}/cfdp/*.c
+set(CFDP_SOURCES
+  ${SRC_DIR}/cfdp/bputa.c
+  ${SRC_DIR}/cfdp/libcfdp.c
+  ${SRC_DIR}/cfdp/libcfdpops.c
+  ${SRC_DIR}/cfdp/libcfdpP.c
 )
+
+if(NOT CFDP_SOURCES)
+  message(FATAL_ERROR "No CFDP source files defined. Ensure extract.sh was run manually to populate ${SRC_DIR}/cfdp.")
+endif()
 
 # Known CFDP programs
 set(CFDP_PROGRAMS
@@ -163,12 +225,6 @@ set(CFDP_PROGRAMS
   cfdptest
 )
 
-# Filter out CFDP executables from library sources
-set(CFDP_SOURCES ${CFDP_ALL_C_FILES})
-foreach(prog IN LISTS CFDP_PROGRAMS)
-  list(REMOVE_ITEM CFDP_SOURCES ${SRC_DIR}/cfdp/${prog}.c)
-endforeach()
-
 # ionrestart source (single-file module)
 set(RESTART_SOURCES
   ${SRC_DIR}/restart/ionrestart.c
@@ -177,7 +233,7 @@ set(RESTART_SOURCES
 # Collect all program executables
 set(ALL_PROGRAMS
   ${ICI_PROGRAMS}
-  ${BP_PROGRAMS}
+  ${BP_EXECUTABLES}
   ${LTP_PROGRAMS}
   ${CFDP_PROGRAMS}
   ionrestart
@@ -221,7 +277,7 @@ set_target_properties(bpcore_shared PROPERTIES
 # Static LTP library
 add_library(ltpcore_static STATIC ${LTP_SOURCES})
 target_include_directories(ltpcore_static PUBLIC ${INC_DIR})
-target_link_libraries(ltpcore_static PRIVATE icicore_static)
+target_link_libraries(ltpcore_static PRIVATE bpcore_static icicore_static)
 set_target_properties(ltpcore_static PROPERTIES
   OUTPUT_NAME ltpcore
   ARCHIVE_OUTPUT_DIRECTORY ${LIB_DIR}
@@ -230,7 +286,7 @@ set_target_properties(ltpcore_static PROPERTIES
 # Shared LTP library
 add_library(ltpcore_shared SHARED ${LTP_SOURCES})
 target_include_directories(ltpcore_shared PUBLIC ${INC_DIR})
-target_link_libraries(ltpcore_shared PRIVATE icicore_shared m pthread)
+target_link_libraries(ltpcore_shared PRIVATE bpcore_shared icicore_shared m pthread)
 set_target_properties(ltpcore_shared PROPERTIES
   OUTPUT_NAME ltpcore
   LIBRARY_OUTPUT_DIRECTORY ${LIB_DIR}
@@ -282,12 +338,17 @@ endforeach()
 
 # LTP Executables
 foreach(PROG IN LISTS LTP_PROGRAMS)
-  if(NOT EXISTS "${SRC_DIR}/ltp/${PROG}.c")
-    message(FATAL_ERROR "Source file ${SRC_DIR}/ltp/${PROG}.c not found.")
+  if(PROG STREQUAL "ltpcli" OR PROG STREQUAL "ltpclo")
+    set(SRC_PATH "${SRC_DIR}/bpv7/${PROG}.c")
+  else()
+    set(SRC_PATH "${SRC_DIR}/ltp/${PROG}.c")
   endif()
-  add_executable(${PROG} ${SRC_DIR}/ltp/${PROG}.c)
+  if(NOT EXISTS "${SRC_PATH}")
+    message(FATAL_ERROR "Source file ${SRC_PATH} not found.")
+  endif()
+  add_executable(${PROG} ${SRC_PATH})
   target_include_directories(${PROG} PRIVATE ${INC_DIR})
-  target_link_libraries(${PROG} PRIVATE ltpcore_static icicore_static m pthread)
+  target_link_libraries(${PROG} PRIVATE ltpcore_static bpcore_static icicore_static m pthread)
   set_target_properties(${PROG} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR}
   )
@@ -309,7 +370,7 @@ endforeach()
 # ionrestart executable
 add_executable(ionrestart ${SRC_DIR}/restart/ionrestart.c)
 target_include_directories(ionrestart PRIVATE ${INC_DIR})
-target_link_libraries(ionrestart PRIVATE restartcore_static icicore_static m pthread)
+target_link_libraries(ionrestart PRIVATE cfdpcore_static ltpcore_static bpcore_static icicore_static m pthread)
 set_target_properties(ionrestart PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR}
 )
@@ -318,12 +379,17 @@ install(TARGETS ${ALL_PROGRAMS}
   RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
 )
 
-# Man Pages
+# Man Pages (only programs with .pod files)
 set(MAN_PROGRAMS
-  ionadmin rfxclock psmwatch sdrwatch
-  # ionwarn excluded, it has no Man Page
+  ionadmin
+  rfxclock
+  psmwatch
+  sdrwatch
+  ${BP_EXECUTABLES}
+  ${LTP_PROGRAMS}
+  ${CFDP_PROGRAMS}
+  ionrestart
 )
-list(APPEND MAN_PROGRAMS ${BP_PROGRAMS} ${LTP_PROGRAMS} ${CFDP_PROGRAMS} ionrestart)
 
 # Man pages generation using pod2man
 set(MAN_PAGES)
@@ -424,7 +490,7 @@ add_custom_target(distclean
   COMMENT "Removing all build artifacts and extracted source files while preserving .gitkeep files"
 )
 
-# Uninstall target: remove installed libraries, programs, scripts, and man pages
+# Uninstall target
 add_custom_target(uninstall
   COMMAND ${CMAKE_COMMAND} -E remove -f
     ${CMAKE_INSTALL_PREFIX}/lib/libicicore.a
@@ -435,23 +501,14 @@ add_custom_target(uninstall
     ${CMAKE_INSTALL_PREFIX}/lib/libltpcore.so
     ${CMAKE_INSTALL_PREFIX}/lib/libcfdpcore.a
     ${CMAKE_INSTALL_PREFIX}/lib/libcfdpcore.so
-    ${CMAKE_INSTALL_PREFIX}/lib/librestartcore.a
-
-  # Uninstall ALL programs
   COMMAND ${CMAKE_COMMAND} -E remove -f
-    ${ALL_PROGRAMS}
-    # Expand each program name into full path
     ${CMAKE_INSTALL_PREFIX}/bin/$<JOIN:${ALL_PROGRAMS}, ${CMAKE_INSTALL_PREFIX}/bin/>
-
-  # Uninstall scripts
   COMMAND ${CMAKE_COMMAND} -E remove -f
     ${CMAKE_INSTALL_PREFIX}/bin/ionstart
     ${CMAKE_INSTALL_PREFIX}/bin/ionstart.awk
     ${CMAKE_INSTALL_PREFIX}/bin/ionstop
     ${CMAKE_INSTALL_PREFIX}/bin/killm
-
-  # Uninstall man pages
-  COMMAND ${CMAKE_COMMAND} -E remove -f ${CMAKE_INSTALL_PREFIX}/share/man/man1/*.1.gz
-
+  COMMAND ${CMAKE_COMMAND} -E remove -f
+    ${CMAKE_INSTALL_PREFIX}/share/man/man1/$<JOIN:${MAN_PROGRAMS}, ${CMAKE_INSTALL_PREFIX}/share/man/man1/>.1.gz
   COMMENT "Uninstalling ION-Core: libraries, binaries, scripts, man pages"
 )
