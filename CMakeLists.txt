@@ -56,7 +56,9 @@ set(LIB_DIR ${CMAKE_SOURCE_DIR}/lib)
 set(BIN_DIR ${CMAKE_SOURCE_DIR}/bin)
 set(MAN_DIR ${CMAKE_SOURCE_DIR}/man)
 
-# ICI source files (automatically gathered)
+#
+# ICI source files
+#
 file(GLOB ICI_ALL_C_FILES
   ${SRC_DIR}/ici/*.c
 )
@@ -76,10 +78,15 @@ foreach(prog IN LISTS ICI_PROGRAMS)
   list(REMOVE_ITEM ICI_SOURCES ${SRC_DIR}/ici/${prog}.c)
 endforeach()
 
+# 
 # LTP source files
+#
 file(GLOB LTP_ALL_C_FILES
   ${SRC_DIR}/ltp/*.c
 )
+
+# Exclude ltpextensions.c from direct compilation
+list(FILTER LTP_ALL_C_FILES EXCLUDE REGEX "ltpextensions\\.c$")
 
 # Known LTP executables (exclude these from library)
 set(LTP_PROGRAMS
@@ -96,10 +103,13 @@ foreach(prog IN LISTS LTP_PROGRAMS)
   list(REMOVE_ITEM LTP_SOURCES ${SRC_DIR}/ltp/${prog}.c)
 endforeach()
 
+#
 # BP source files (based on libbp.mk and extract.sh output)
+#
 file(GLOB BP_SOURCES
   ${SRC_DIR}/bpv7/*.c
 )
+
 # Filter out test programs for separate executable targets
 set(BP_EXECUTABLES
   bpadmin 
@@ -131,12 +141,15 @@ set(BP_EXECUTABLES
   lgagent 
   lgsend
 )
+
 # Remove these from BP_SOURCES for library build
 foreach(prog IN LISTS BP_EXECUTABLES)
   list(REMOVE_ITEM BP_SOURCES ${SRC_DIR}/bpv7/${prog}.c)
 endforeach()
 
+#
 # CFDP source files
+#
 file(GLOB CFDP_ALL_C_FILES
   ${SRC_DIR}/cfdp/*.c
 )
