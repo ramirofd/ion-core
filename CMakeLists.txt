@@ -41,7 +41,7 @@ add_definitions(-DVNAME=ION-CORE-4.1.3s) # Define VNAME macro
 add_compile_options(-g -Wall -DBP_EXTENDED)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC") # For shared libraries
 
-# Extension flags (configurable via ion-core-config.cmake)
+# Extension flags 
 option(ENABLE_BPQ_EXT "Enable Bundle Protocol QoS Extension Block" ON)
 option(ENABLE_IMC_EXT "Enable IMC Multicast Extension Block" ON)
 if(ENABLE_BPQ_EXT)
