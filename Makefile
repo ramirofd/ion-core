@@ -21,6 +21,7 @@ INSTALL_PATH = /usr/local/
 
 PWD := $(shell pwd)
 
+export SRC = $(PWD)/src
 export SRC_ICI = $(PWD)/src/ici
 export SRC_BPV7 = $(PWD)/src/bpv7
 export SRC_CFDP = $(PWD)/src/cfdp
@@ -153,7 +154,6 @@ install-lib:
 # sym links to original .pod files are in ion-core/src/man
 # generated man page is in ion-core/man
 man:
-	$(info Make "man" target...)
 	./scripts/make-man-pages.sh $(SRC)/man "$(PROGRAMS)"
 	find $(MAN) -maxdepth 1 -type f -exec cp -v {} $(INSTALL_PATH)/share/man/man1 \; || true
 

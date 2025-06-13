@@ -7,7 +7,7 @@ BUILD_LIST_INCLUDED = YES
 ######################
 # Set version number
 ######################
-VER := -DVNAME=ION-CORE-4.1.3s-a.2
+VER := -DVNAME=ION-CORE-4.1.3s
 
 ###################### 
 # Architecture
