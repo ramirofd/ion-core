@@ -1,0 +1,177 @@
+#
+# Build list for ION-core 4.1.3 (CMake equivalent)
+#
+
+######################
+# Set version number
+######################
+# Define VER directly as a CMake variable, equivalent to -DVNAME in Makefile
+set(VER "-DVNAME=ION-CORE-4.1.3s")
+
+######################
+# Architecture and OS_FLAGS
+# CMake's built-in variables simplify this.
+######################
+
+# Reset OS_FLAGS to ensure it's clean before setting
+set(OS_FLAGS "")
+
+# Detect the OS and architecture using CMake's built-in variables
+# CMAKE_SYSTEM_NAME: Linux, Darwin, FreeBSD
+# CMAKE_SIZEOF_VOID_P: Size of a void pointer (e.g., 4 for 32-bit, 8 for 64-bit)
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(OS_FLAGS "-Dlinux -DSPACE_ORDER=3 -fno-strict-aliasing")
+  else()
+    set(OS_FLAGS "-Dlinux -DSPACE_ORDER=2 -fno-strict-aliasing")
+  endif()
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+  if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(OS_FLAGS "-Dunix -Ddarwin -DSPACE_ORDER=3") # -m64 is handled by CMAKE_C_FLAGS
+  else()
+    set(OS_FLAGS "-Dunix -Ddarwin -DSPACE_ORDER=2") # -m32 is handled by CMAKE_C_FLAGS
+  endif()
+elseif(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+  if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(OS_FLAGS "-Dfreebsd -DSPACE_ORDER=3") # -m64 is handled by CMAKE_C_FLAGS
+  else()
+    set(OS_FLAGS "-Dfreebsd -DSPACE_ORDER=2") # -m32 is handled by CMAKE_C_FLAGS
+  endif()
+endif()
+
+# Output for debugging (similar to Makefile's info messages)
+message(STATUS "OS: ${CMAKE_SIZEOF_VOID_P}-bits ${CMAKE_SYSTEM_NAME}; HW ARCH: ${CMAKE_SYSTEM_PROCESSOR}")
+message(STATUS "OS_FLAGS set to: ${OS_FLAGS}")
+
+
+##################
+# FLAGS for Extension for Locally Sourced Bundles
+##################
+# Use CMake options for user-configurable flags, and set default values.
+# This makes it easier for users to enable/disable extensions via CMake-GUI or -D
+# For flags that are always active by default in Makefile, set them ON here.
+
+# Initializing EXT_FLAGS list
+set(EXT_FLAGS "")
+
+# Ensure these options are set in the main CMakeLists.txt or here.
+# For now, we'll mimic the Makefile by directly setting the flags.
+# In CMake, it's better to use `add_definitions` or `target_compile_definitions`
+# directly rather than accumulating a string `EXT_FLAGS`.
+# However, to strictly mimic, we'll collect the flags here.
+
+# As per your build-list.mk, BPQ_EXT and IMC_EXT are enabled by default.
+# If you wish to make them configurable by the user, you'd use `option()` in CMakeLists.txt
+# and check if they are ON.
+# For direct translation, we'll append to EXT_FLAGS string.
+# Note: In CMake, it's often better to use `add_definitions(-DBPQ_EXT)` directly
+# in the main CMakeLists.txt where compilation flags are applied.
+# This `EXT_FLAGS` variable here would then only serve as documentation or for
+# a very specific concatenation logic.
+# For the purpose of *this* build-list.cmake, we'll define it as a string
+# that *could* be passed to add_definitions later.
+set(EXT_FLAGS "-DBPQ_EXT -DIMC_EXT") # Matches your Makefile: EXT_FLAGS += -DBPQ_EXT EXT_FLAGS += -DIMC_EXT
+
+
+##################
+# PART I: Mandatory Functions
+##################
+# Use `set()` to define the PROGRAMS list.
+
+set(PROGRAMS
+  # ICI
+  ionadmin
+  ionwarn
+  rfxclock
+  ionrestart
+
+  # BPv7
+  bpadmin
+  bpclm
+  bpclock
+  bptransit
+  ipnadmin
+  ipnadminep
+  ipnfw
+
+  # Utility Programs
+  bpsink
+  bpsource
+  bpecho
+  bping
+  bpstats
+  bptrace
+)
+
+##################
+# PART II: Optional Feature List
+##################
+# Append to the PROGRAMS list for optional features.
+list(APPEND PROGRAMS
+  # ICI utilities
+  psmwatch
+  sdrwatch
+
+  # BPv7 utilities
+  bpversion
+
+  # Load-and-Go Command
+  lgagent
+  lgsend
+
+  # CLA: must include at least one of STCP, UDP, or LTP
+  # STCP CLA
+  stcpcli
+  stcpclo
+
+  # UDP CLA
+  udpcli
+  udpclo
+
+  # LTP CLA
+  ltpcli
+  ltpclo
+  udplsi
+  udplso
+  ltpclock
+  ltpdeliv
+  ltpmeter
+  ltpadmin
+
+  # CFDP Class 1
+  bputa
+  cfdpclock
+  cfdptest
+  cfdpadmin
+
+  # Utility Programs
+  bprecvfile
+  bpsendfile
+  bpchat
+  bpcounter
+  bpdriver
+  bplist
+  bpcancel
+  owltsim
+)
+# If you had conditional compilation for these in Makefile (e.g., ifdefs),
+# you would wrap these `list(APPEND PROGRAMS ...)` calls in `if()` statements
+# based on CMake options set in CMakeLists.txt.
+# Example: if(ENABLE_PSMWATCH) ... endif()
+
+
+##################
+# PART IV: Testing Mapping
+##################
+# Define COMBINATION_TESTS as a list of strings.
+# Each string is "program1+program2:test_suite_1+test_suite_2".
+# Escaping semicolons might be necessary if they are part of the value.
+# For clean reading, each entry on a new line.
+set(COMBINATION_TESTS
+  "cfdpadmin+ltpcli+owltsim:bench-cfdp/"
+  "stcpcli:bench-stcp/"
+  "ltpcli:bench-ltp/"
+  "bptrace+bpsink+ltpcli:bptrace_terminal_test/"
+  "bping+bpecho+udpcli:bping/"
+)

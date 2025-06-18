@@ -351,6 +351,7 @@ MANPAGE=(
   "$SOURCE_PATH/bpv7/doc/pod1/bpecho.pod:bpv7"
   "$SOURCE_PATH/bpv7/doc/pod1/bping.pod:bpv7"
   "$SOURCE_PATH/bpv7/doc/pod1/bplist.pod:bpv7"
+  "$SOURCE_PATH/bpv7/doc/pod1/bpcancel.pod:bpv7"
   "$SOURCE_PATH/bpv7/doc/pod1/bprecvfile.pod:bpv7"
   "$SOURCE_PATH/bpv7/doc/pod1/bpsendfile.pod:bpv7"
   "$SOURCE_PATH/bpv7/doc/pod1/bpsink.pod:bpv7"

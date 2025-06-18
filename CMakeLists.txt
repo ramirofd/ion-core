@@ -10,46 +10,56 @@ set(CMAKE_INSTALL_PREFIX /usr/local CACHE PATH "Installation prefix")
 # Include custom configuration file for feature selection
 include(ion-core-config.cmake OPTIONAL)
 
-# Platform detection and flags (from build-list.mk)
+# Include the new build-list.cmake file to define global build variables
+include(${CMAKE_SOURCE_DIR}/build-list.cmake) # Assuming build-list.cmake is in the root
+
+# Platform detection and flags (now handled by build-list.cmake which sets OS_FLAGS)
+# The logic below can be simplified as OS_FLAGS is already set.
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    add_definitions(-Dlinux -DSPACE_ORDER=3 -fno-strict-aliasing)
-  else()
-    add_definitions(-Dlinux -DSPACE_ORDER=2 -fno-strict-aliasing)
-  endif()
+  # Already handled by build-list.cmake setting OS_FLAGS
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+  # -m64/-m32 flags are commonly handled by adding to CMAKE_C_FLAGS if necessary,
+  # but often CMake's default compilers handle this based on CMAKE_SIZEOF_VOID_P
+  # For direct mimicry:
   if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    add_definitions(-Dunix -Ddarwin -DSPACE_ORDER=3)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m64")
   else()
-    add_definitions(-Dunix -Ddarwin -DSPACE_ORDER=2)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m32")
   endif()
 elseif(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
   if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    add_definitions(-Dfreebsd -DSPACE_ORDER=3)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m64")
   else()
-    add_definitions(-Dfreebsd -DSPACE_ORDER=2)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m32")
   endif()
 endif()
 
+# Apply the OS-specific definitions from build-list.cmake
+add_definitions(${OS_FLAGS})
+
 # Compiler flags (from Makefile)
-add_definitions(-DVNAME=ION-CORE-4.1.3s) # Define VNAME macro
+# VER is now set in build-list.cmake, so we can use it directly
+add_definitions(${VER}) # -DVNAME=ION-CORE-4.1.3s
 
 add_compile_options(-g -Wall -DBP_EXTENDED)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC") # For shared libraries
 
-# Extension flags 
-option(ENABLE_BPQ_EXT "Enable Bundle Protocol QoS Extension Block" ON)
-option(ENABLE_IMC_EXT "Enable IMC Multicast Extension Block" ON)
-if(ENABLE_BPQ_EXT)
-  add_definitions(-DBPQ_EXT)
-endif()
-if(ENABLE_IMC_EXT)
-  add_definitions(-DIMC_EXT)
-endif()
+# Apply extension flags from build-list.cmake
+add_definitions(${EXT_FLAGS})
+
+# Extension flags - if these were originally options, keep them as options
+# The `EXT_FLAGS` string from build-list.cmake can define the default flags.
+# If you want them to be user-configurable, you would still use `option()`
+# and then conditionally add definitions. For now, mimicking direct application.
+# option(ENABLE_BPQ_EXT "Enable Bundle Protocol QoS Extension Block" ON)
+# option(ENABLE_IMC_EXT "Enable IMC Multicast Extension Block" ON)
+# if(ENABLE_BPQ_EXT)
+#   add_definitions(-DBPQ_EXT)
+# endif()
+# if(ENABLE_IMC_EXT)
+#   add_definitions(-DIMC_EXT)
+# endif()
+
 
 # Define directories
 set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
@@ -57,6 +67,7 @@ set(INC_DIR ${CMAKE_SOURCE_DIR}/inc)
 set(LIB_DIR ${CMAKE_SOURCE_DIR}/lib)
 set(BIN_DIR ${CMAKE_SOURCE_DIR}/bin)
 set(MAN_DIR ${CMAKE_SOURCE_DIR}/man)
+set(TESTS_DIR ${CMAKE_SOURCE_DIR}/tests) # Define TESTS_DIR for test target
 
 #
 # ICI source files
@@ -94,12 +105,14 @@ if(NOT ICI_SOURCES)
 endif()
 
 # List of known ICI executables (not to include in library)
+# PROGRAMS are now defined in build-list.cmake, use its values
 set(ICI_PROGRAMS
   ionadmin
   ionwarn
   rfxclock
   psmwatch
   sdrwatch
+  owltsim
 )
 
 # 
@@ -189,7 +202,8 @@ set(BP_EXECUTABLES
   bpdriver 
   bpecho 
   bping 
-  bplist 
+  bplist
+  bpcancel
   bprecvfile 
   bpsendfile 
   bpsink 
@@ -220,6 +234,7 @@ endif()
 
 # Known CFDP programs
 set(CFDP_PROGRAMS
+  bputa
   bpcp
   bpcpd
   cfdpadmin
@@ -232,14 +247,12 @@ set(RESTART_SOURCES
   ${SRC_DIR}/restart/ionrestart.c
 )
 
-# Collect all program executables
-set(ALL_PROGRAMS
-  ${ICI_PROGRAMS}
-  ${BP_EXECUTABLES}
-  ${LTP_PROGRAMS}
-  ${CFDP_PROGRAMS}
-  ionrestart
-)
+# Collect all program executables (now primarily driven by PROGRAMS from build-list.cmake)
+# Ensure ALL_PROGRAMS contains all listed executables for linking
+# You might still need these sub-lists (ICI_PROGRAMS, BP_EXECUTABLES, etc.)
+# for iterating over specific module sources, but the master list comes from build-list.cmake
+set(ALL_PROGRAMS ${PROGRAMS}) # Use PROGRAMS variable populated from build-list.cmake
+
 
 # Static ICI library
 add_library(icicore_static STATIC ${ICI_SOURCES})
@@ -314,68 +327,78 @@ set_target_properties(cfdpcore_shared PROPERTIES
 
 # ICI Executables
 foreach(PROG IN LISTS ICI_PROGRAMS)
-  if(NOT EXISTS "${SRC_DIR}/ici/${PROG}.c")
-    message(FATAL_ERROR "Source file ${SRC_DIR}/ici/${PROG}.c not found.")
+  if(${PROG} IN_LIST ALL_PROGRAMS) # Only build if it's in the master PROGRAMS list
+    if(NOT EXISTS "${SRC_DIR}/ici/${PROG}.c")
+      message(FATAL_ERROR "Source file ${SRC_DIR}/ici/${PROG}.c not found.")
+    endif()
+    add_executable(${PROG} ${SRC_DIR}/ici/${PROG}.c)
+    target_include_directories(${PROG} PRIVATE ${INC_DIR})
+    target_link_libraries(${PROG} PRIVATE icicore_static m pthread)
+    set_target_properties(${PROG} PROPERTIES
+      RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR}
+    )
   endif()
-  add_executable(${PROG} ${SRC_DIR}/ici/${PROG}.c)
-  target_include_directories(${PROG} PRIVATE ${INC_DIR})
-  target_link_libraries(${PROG} PRIVATE icicore_static m pthread)
-  set_target_properties(${PROG} PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR}
-  )
 endforeach()
 
 # BP Executables
 foreach(PROG IN LISTS BP_EXECUTABLES)
-  if(NOT EXISTS "${SRC_DIR}/bpv7/${PROG}.c")
-    message(FATAL_ERROR "Source file ${SRC_DIR}/bpv7/${PROG}.c not found.")
+  if(${PROG} IN_LIST ALL_PROGRAMS) # Only build if it's in the master PROGRAMS list
+    if(NOT EXISTS "${SRC_DIR}/bpv7/${PROG}.c")
+      message(FATAL_ERROR "Source file ${SRC_DIR}/bpv7/${PROG}.c not found.")
+    endif()
+    add_executable(${PROG} ${SRC_DIR}/bpv7/${PROG}.c)
+    target_include_directories(${PROG} PRIVATE ${INC_DIR})
+    target_link_libraries(${PROG} PRIVATE bpcore_static icicore_static m pthread)
+    set_target_properties(${PROG} PROPERTIES
+      RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR}
+    )
   endif()
-  add_executable(${PROG} ${SRC_DIR}/bpv7/${PROG}.c)
-  target_include_directories(${PROG} PRIVATE ${INC_DIR})
-  target_link_libraries(${PROG} PRIVATE bpcore_static icicore_static m pthread)
-  set_target_properties(${PROG} PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR}
-  )
 endforeach()
 
 # LTP Executables
 foreach(PROG IN LISTS LTP_PROGRAMS)
-  if(PROG STREQUAL "ltpcli" OR PROG STREQUAL "ltpclo")
-    set(SRC_PATH "${SRC_DIR}/bpv7/${PROG}.c")
-  else()
-    set(SRC_PATH "${SRC_DIR}/ltp/${PROG}.c")
+  if(${PROG} IN_LIST ALL_PROGRAMS) # Only build if it's in the master PROGRAMS list
+    if(PROG STREQUAL "ltpcli" OR PROG STREQUAL "ltpclo")
+      set(SRC_PATH "${SRC_DIR}/bpv7/${PROG}.c")
+    else()
+      set(SRC_PATH "${SRC_DIR}/ltp/${PROG}.c")
+    endif()
+    if(NOT EXISTS "${SRC_PATH}")
+      message(FATAL_ERROR "Source file ${SRC_PATH} not found.")
+    endif()
+    add_executable(${PROG} ${SRC_PATH})
+    target_include_directories(${PROG} PRIVATE ${INC_DIR})
+    target_link_libraries(${PROG} PRIVATE ltpcore_static bpcore_static icicore_static m pthread)
+    set_target_properties(${PROG} PROPERTIES
+      RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR}
+    )
   endif()
-  if(NOT EXISTS "${SRC_PATH}")
-    message(FATAL_ERROR "Source file ${SRC_PATH} not found.")
-  endif()
-  add_executable(${PROG} ${SRC_PATH})
-  target_include_directories(${PROG} PRIVATE ${INC_DIR})
-  target_link_libraries(${PROG} PRIVATE ltpcore_static bpcore_static icicore_static m pthread)
-  set_target_properties(${PROG} PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR}
-  )
 endforeach()
 
 # CFDP executables
 foreach(PROG IN LISTS CFDP_PROGRAMS)
-  if(NOT EXISTS "${SRC_DIR}/cfdp/${PROG}.c")
-    message(FATAL_ERROR "Source file ${SRC_DIR}/cfdp/${PROG}.c not found.")
+  if(${PROG} IN_LIST ALL_PROGRAMS) # Only build if it's in the master PROGRAMS list
+    if(NOT EXISTS "${SRC_DIR}/cfdp/${PROG}.c")
+      message(FATAL_ERROR "Source file ${SRC_DIR}/cfdp/${PROG}.c not found.")
+    endif()
+    add_executable(${PROG} ${SRC_DIR}/cfdp/${PROG}.c)
+    target_include_directories(${PROG} PRIVATE ${INC_DIR})
+    target_link_libraries(${PROG} PRIVATE cfdpcore_static bpcore_static icicore_static m pthread)
+    set_target_properties(${PROG} PROPERTIES
+      RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR}
+    )
   endif()
-  add_executable(${PROG} ${SRC_DIR}/cfdp/${PROG}.c)
-  target_include_directories(${PROG} PRIVATE ${INC_DIR})
-  target_link_libraries(${PROG} PRIVATE cfdpcore_static bpcore_static icicore_static m pthread)
-  set_target_properties(${PROG} PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR}
-  )
 endforeach()
 
-# ionrestart executable
-add_executable(ionrestart ${SRC_DIR}/restart/ionrestart.c)
-target_include_directories(ionrestart PRIVATE ${INC_DIR})
-target_link_libraries(ionrestart PRIVATE cfdpcore_static ltpcore_static bpcore_static icicore_static m pthread)
-set_target_properties(ionrestart PROPERTIES
-  RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR}
-)
+# ionrestart executable (only build if it's in the master PROGRAMS list)
+if("ionrestart" IN_LIST ALL_PROGRAMS)
+  add_executable(ionrestart ${SRC_DIR}/restart/ionrestart.c)
+  target_include_directories(ionrestart PRIVATE ${INC_DIR})
+  target_link_libraries(ionrestart PRIVATE cfdpcore_static ltpcore_static bpcore_static icicore_static m pthread)
+  set_target_properties(ionrestart PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR}
+  )
+endif()
 
 install(TARGETS ${ALL_PROGRAMS}
   RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
@@ -523,4 +546,46 @@ add_custom_target(uninstall
   COMMAND ${CMAKE_COMMAND} -E remove -f
     ${MAN_PAGES_FILES}
   COMMENT "Uninstalling ION-Core: libraries, binaries, scripts, man pages"
+)
+
+# --- Test Target ---
+# This section mimics the 'test' target from your Makefile.
+# It uses the 'COMBINATION_TESTS' variable defined in build-list.cmake.
+
+set(ALL_TESTS_TO_RUN "")
+
+foreach(COMBO_ENTRY IN LISTS COMBINATION_TESTS)
+  # Split the combination entry into program part and test part
+  string(REPLACE ":" ";" COMBO_PARTS "${COMBO_ENTRY}")
+  list(GET COMBO_PARTS 0 COMB_PROGS_STR)
+  list(GET COMBO_PARTS 1 TESTS_TO_RUN_STR)
+
+  # Convert the program combination string to a CMake list
+  string(REPLACE "+" ";" CURRENT_COMBO_PROGS "${COMB_PROGS_STR}")
+  # Convert the tests to run string to a CMake list. No regex replace to preserve slashes.
+  string(REPLACE "+" ";" CLEANED_TESTS_TO_RUN "${TESTS_TO_RUN_STR}")
+  
+  set(COMB_FOUND TRUE)
+  foreach(PROG IN LISTS CURRENT_COMBO_PROGS)
+    # Check if the program exists in the ALL_PROGRAMS list
+    list(FIND ALL_PROGRAMS "${PROG}" PROG_INDEX)
+    if(PROG_INDEX EQUAL -1)
+      set(COMB_FOUND FALSE)
+      break()
+    endif()
+  endforeach()
+
+  if(COMB_FOUND)
+    message(STATUS "Combination found: ${COMB_PROGS_STR}. Adding tests: ${CLEANED_TESTS_TO_RUN}")
+    list(APPEND ALL_TESTS_TO_RUN ${CLEANED_TESTS_TO_RUN})
+  else()
+    message(STATUS "Combination not found (one or more programs not built): ${COMB_PROGS_STR}")
+  endif()
+endforeach()
+
+# Pass the CMake list directly to the COMMAND, so each element is a separate argument.
+add_custom_target(test
+  COMMAND
+    ${CMAKE_COMMAND} -E chdir ${TESTS_DIR} ./runtests ${ALL_TESTS_TO_RUN}
+  COMMENT "Running selected tests based on enabled programs (mimics Makefile 'test' target)."
 )
