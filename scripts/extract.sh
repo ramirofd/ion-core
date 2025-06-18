@@ -406,6 +406,8 @@ TEST_DIRS=(
   "$SOURCE_PATH/demos/bench-cfdp"
   "$SOURCE_PATH/tests/bptrace_terminal_test"
   "$SOURCE_PATH/tests/bping"
+  "$SOURCE_PATH/tests/issue-352-bpcp-ltp"
+  "$SOURCE_PATH/tests/issue-352-bpcp-stcp"
 )
 
 # Extract .c files

@@ -116,8 +116,7 @@ PROGRAMS += bpchat
 PROGRAMS += bpcounter bpdriver
 PROGRAMS += bplist bpcancel
 PROGRAMS += owltsim
-# To Do: add bpcp feature for 4.1.3s
-# PROGRAMS += bpcp bpcpd
+PROGRAMS += bpcp bpcpd
 
 #
 # PART III: PLATFORM & BP Extension
@@ -137,4 +136,6 @@ COMBINATION_TESTS := \
 	stcpcli:bench-stcp/ \
 	ltpcli:bench-ltp/ \
   bptrace+bpsink+ltpcli:bptrace_terminal_test/ \
-  bping+bpecho+udpcli:bping/
+  bping+bpecho+udpcli:bping/ \
+  cfdpadmin+ltpcli:issue-352-bpcp-ltp/ \
+  cfdpadmin+stcpcli:issue-352-bpcp-stcp/
