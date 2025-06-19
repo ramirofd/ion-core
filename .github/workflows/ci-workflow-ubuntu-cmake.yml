@@ -1,0 +1,66 @@
+name: Regression Test for ion-core on Ubuntu using CMake
+
+on:
+  pull_request:
+    branches:
+    - integration
+
+  workflow_dispatch:
+
+  push:
+    branches:
+      - update-4.1.3a-symlink
+      - update-4.1.3s-add-os-support
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest  # Use Ubuntu. Or macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4  # Checkout the code from the repository
+
+      - name: Set up dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bash python3 gcc make cmake # Install dependencies
+
+      - name: Generate timestamp for file names
+        id: timestamp
+        run: echo "TIMESTAMP=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_ENV
+
+      - name: Run build and tests, capture stdout
+        run: | # Redirect stdout and stderr to a log
+          {
+            echo "Starting build and tests at $(date)"
+            make clean
+            sudo make uninstall
+            make distclean
+            ./scripts/extract.sh
+            rm -rf build
+            mkdir build && cd build
+            cmake ..
+            make
+            make man
+            sudo make install
+            make test
+          } 2>&1 | tee build-and-test.log
+
+      - name: Display Progress
+        if: ${{ always() }}  # Display progress even if tests were interrupted
+        run: | 
+          cat ./tests/progress
+
+      - name: Upload full build and test log
+        if: ${{ always() }}  # Capture log even if the previous step fails
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-and-test-log-cmake${{ env.TIMESTAMP }}
+          path: build-and-test.log  # Upload the entire stdout and stderr as an artifact
+
+      - name: Upload progress file as artifact
+        if: ${{ always() }}  # Capture progress even if the previous step fails
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-progress-cmake${{ env.TIMESTAMP }}
+          path: ./tests/progress  # Upload the 'progress' file for later review

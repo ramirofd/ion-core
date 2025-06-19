@@ -144,6 +144,8 @@ list(APPEND PROGRAMS
   cfdpclock
   cfdptest
   cfdpadmin
+  bpcp
+  bpcpd
 
   # Utility Programs
   bprecvfile
@@ -174,4 +176,6 @@ set(COMBINATION_TESTS
   "ltpcli:bench-ltp/"
   "bptrace+bpsink+ltpcli:bptrace_terminal_test/"
   "bping+bpecho+udpcli:bping/"
+  "cfdpadmin+ltpcli:issue-352-bpcp-ltp/"
+  "cfdpadmin+stcpcli:issue-352-bpcp-stcp/"
 )
