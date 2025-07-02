@@ -20,6 +20,7 @@
   - [Contributing Code](#contributing-code)
   - [WSL2 Networking Issue](#wsl2-networking-issue)
   - [Release Notes](#release-notes)
+      - [Latest Release Tag: `4.1.3s`](#latest-release-tag-413s)
       - [Tag: `4.1.3s-a.1`](#tag-413s-a1)
       - [Tag: `4.1.3`](#tag-413)
       - [Tag: `4.1.2b`](#tag-412b)
@@ -309,13 +310,16 @@ Alternative approach is to use the WSL Vpnkit to provide VPN connection:
 
 https://github.com/sakai135/wsl-vpnkit
 
-
-
---------------------------
-
 ## Release Notes
 
-Latest Release
+#### Latest Release Tag: `4.1.3s`
+
+7/3/2025
+Update codebase to ION open source verion 4.1.3s - BPSec prototype is still considered experimental, therefore not included in this release. Following updates were made:
+  * Reorganized source file symbolic links into subfolders by module name
+  * Created a CMake prototype for experimentation
+  * Fixed bug for `ionadmin` to display correct ION version number instead of "unknown"
+  * Added `bpcp` related regression tests for LTP and STCP convergence layers
 
 #### Tag: `4.1.3s-a.1`
 
