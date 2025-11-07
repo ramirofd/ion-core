@@ -9,7 +9,13 @@ BUILD_LIST_INCLUDED = YES
 ######################
 VER := -DVNAME=ION-CORE-4.1.3s
 
-###################### 
+######################
+# ION-CORE Build Flag
+# (enables conditional compilation in ION-DTN)
+######################
+ION_CORE_FLAG := -DION_CORE_BUILD
+
+######################
 # Architecture
 # (set automatically)
 ######################

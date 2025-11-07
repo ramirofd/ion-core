@@ -44,6 +44,9 @@ add_definitions(${VER}) # -DVNAME=ION-CORE-4.1.3s
 add_compile_options(-g -Wall -DBP_EXTENDED)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC") # For shared libraries
 
+# Apply ION-CORE build flag from build-list.cmake
+add_definitions(${ION_CORE_FLAG})
+
 # Apply extension flags from build-list.cmake
 add_definitions(${EXT_FLAGS})
 
@@ -60,10 +63,15 @@ add_definitions(${EXT_FLAGS})
 #   add_definitions(-DIMC_EXT)
 # endif()
 
+# Check if ION-DTN submodule is initialized
+if(NOT EXISTS "${CMAKE_SOURCE_DIR}/external/ION-DTN/.git")
+  message(FATAL_ERROR "ION-DTN submodule not initialized. Run: git submodule update --init --recursive")
+endif()
 
 # Define directories
-set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
-set(INC_DIR ${CMAKE_SOURCE_DIR}/inc)
+set(ION_DTN_DIR ${CMAKE_SOURCE_DIR}/external/ION-DTN)
+set(SRC_DIR ${ION_DTN_DIR})
+set(INC_DIR ${ION_DTN_DIR})
 set(LIB_DIR ${CMAKE_SOURCE_DIR}/lib)
 set(BIN_DIR ${CMAKE_SOURCE_DIR}/bin)
 set(MAN_DIR ${CMAKE_SOURCE_DIR}/man)
@@ -101,7 +109,7 @@ set(ICI_SOURCES
 )
 
 if(NOT ICI_SOURCES)
-  message(FATAL_ERROR "No ICI source files defined. Ensure extract.sh was run manually to populate ${SRC_DIR}/ici.")
+  message(FATAL_ERROR "No ICI source files defined. Ensure ION-DTN submodule is initialized: git submodule update --init --recursive")
 endif()
 
 # List of known ICI executables (not to include in library)
@@ -127,7 +135,7 @@ set(LTP_SOURCES
 )
 
 if(NOT LTP_SOURCES)
-  message(FATAL_ERROR "No LTP source files defined. Ensure extract.sh was run manually to populate ${SRC_DIR}/ltp.")
+  message(FATAL_ERROR "No LTP source files defined. Ensure ION-DTN submodule is initialized: git submodule update --init --recursive")
 endif()
 
 # Known LTP executables (exclude these from library)
@@ -143,7 +151,7 @@ set(LTP_PROGRAMS
 )
 
 #
-# BP source files (based on libbp.mk and extract.sh output)
+# BP source files (based on libbp.mk and ION-DTN submodule)
 #
 set(BP_SOURCES
   ${SRC_DIR}/bpv7/bae.c
@@ -184,7 +192,7 @@ set(BP_SOURCES
 )
 
 if(NOT BP_SOURCES)
-  message(FATAL_ERROR "No BP source files defined. Ensure extract.sh was run manually to populate ${SRC_DIR}/bpv7.")
+  message(FATAL_ERROR "No BP source files defined. Ensure ION-DTN submodule is initialized: git submodule update --init --recursive")
 endif()
 
 # Filter out test programs for separate executable targets
@@ -229,7 +237,7 @@ set(CFDP_SOURCES
 )
 
 if(NOT CFDP_SOURCES)
-  message(FATAL_ERROR "No CFDP source files defined. Ensure extract.sh was run manually to populate ${SRC_DIR}/cfdp.")
+  message(FATAL_ERROR "No CFDP source files defined. Ensure ION-DTN submodule is initialized: git submodule update --init --recursive")
 endif()
 
 # Known CFDP programs

@@ -9,6 +9,12 @@
 set(VER "-DVNAME=ION-CORE-4.1.3s")
 
 ######################
+# ION-CORE Build Flag
+# (enables conditional compilation in ION-DTN)
+######################
+set(ION_CORE_FLAG "-DION_CORE_BUILD")
+
+######################
 # Architecture and OS_FLAGS
 # CMake's built-in variables simplify this.
 ######################

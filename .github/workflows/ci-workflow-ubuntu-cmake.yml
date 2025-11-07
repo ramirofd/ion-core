@@ -18,7 +18,9 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4  # Checkout the code from the repository
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'  # Initialize and checkout submodules
 
       - name: Set up dependencies
         run: |
@@ -29,6 +31,10 @@ jobs:
         id: timestamp
         run: echo "TIMESTAMP=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_ENV
 
+      - name: Setup ION-DTN submodule
+        run: |
+          ./scripts/setup-submodule.sh
+
       - name: Run build and tests, capture stdout
         run: | # Redirect stdout and stderr to a log
           {
@@ -36,7 +42,6 @@ jobs:
             make clean
             sudo make uninstall
             make distclean
-            ./scripts/extract.sh
             rm -rf build
             mkdir build && cd build
             cmake ..

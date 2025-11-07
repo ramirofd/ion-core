@@ -13,6 +13,11 @@ endif
 
 $(info build-list.mk has been included, proceed to build.)
 
+# Check if ION-DTN submodule is initialized
+ifeq ($(wildcard external/ION-DTN/.git),)
+$(error ION-DTN submodule not initialized. Run: git submodule update --init --recursive)
+endif
+
 ###########################
 # Build Rules
 ###########################
@@ -20,14 +25,15 @@ $(info build-list.mk has been included, proceed to build.)
 INSTALL_PATH = /usr/local/
 
 PWD := $(shell pwd)
+ION_DTN = $(PWD)/external/ION-DTN
 
-export SRC = $(PWD)/src
-export SRC_ICI = $(PWD)/src/ici
-export SRC_BPV7 = $(PWD)/src/bpv7
-export SRC_CFDP = $(PWD)/src/cfdp
-export SRC_LTP = $(PWD)/src/ltp
-export SRC_RESTART = $(PWD)/src/restart
-export INC = $(PWD)/inc
+export SRC = $(ION_DTN)
+export SRC_ICI = $(ION_DTN)/ici
+export SRC_BPV7 = $(ION_DTN)/bpv7
+export SRC_CFDP = $(ION_DTN)/cfdp
+export SRC_LTP = $(ION_DTN)/ltp
+export SRC_RESTART = $(ION_DTN)/restart
+export INC = $(ION_DTN)
 export OUT_BIN = $(PWD)/bin
 export MAN = $(PWD)/man
 export SCR = $(PWD)/scripts
@@ -43,8 +49,9 @@ LIB = $(PWD)/lib
 # OS_FLAGS is for different combination of OS and HW architecture
 # BP_EXTENDED is required enables extension blocks required for QoS.
 # EXT_FLAGS is a list of individual extension blocks for locally sourced bundles
+# ION_CORE_FLAG enables conditional compilation in ION-DTN for ion-core-specific builds
 
-export CFLAG = -g -Wall $(OS_FLAGS) $(VER) -DBP_EXTENDED ${EXT_FLAGS}
+export CFLAG = -g -Wall $(OS_FLAGS) $(VER) $(ION_CORE_FLAG) -DBP_EXTENDED ${EXT_FLAGS}
 export PLATFORM = -lm -pthread
 export SHARED_FLAG = -fPIC
 export GCC = $(shell command -v gcc || echo /usr/bin/gcc)
