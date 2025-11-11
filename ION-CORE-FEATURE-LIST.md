@@ -112,12 +112,11 @@ Based on ION-DTN version 4.1.4-b.1.
 
 | Status | Executable/Library | Notes |
 |--------|-------------------|-------|
-| y | bpq (bundle protocol qos) | Enabled by default for locally sourced bundles |
+| y | bpq/qos (quality of service) | Enabled by default for locally sourced bundles (flag: BPQ_EXT) |
 | y | imc (bundle multicast) | Enabled by default for locally sourced bundles |
 | c | pbn (previous node) | Configurable via EXT_FLAGS in build-list.mk |
 | c | bae (bundle age) | Configurable via EXT_FLAGS in build-list.mk |
 | c | snw (spray and wait) | Configurable via EXT_FLAGS in build-list.mk |
-| y | qos (quality of service) | Always supported for processing |
 | y | meb (metadata) | Always supported for processing |
 | y | hcb (hop count) | Always supported for processing |
 | y | bib (bundle integrity) | Always supported for processing |
@@ -441,7 +440,7 @@ Features can be selected/excluded via the `build-list.mk` (Makefile) or `build-l
 Extension blocks can be categorized into three groups:
 
 1. **Enabled by default for locally sourced bundles** (in build-list.mk):
-   - **BPQ_EXT** - Bundle Protocol QoS Extension Block
+   - **BPQ_EXT** - Quality of Service Extension Block (BPQ/QoS, handles bundle priority)
    - **IMC_EXT** - IMC Multicast Extension Block
 
 2. **Configurable via EXT_FLAGS** (commented out by default in build-list.mk):
@@ -450,7 +449,7 @@ Extension blocks can be categorized into three groups:
    - **SNW_EXT** - Spray and Wait Permit Extension Block
 
 3. **Always supported for processing** (regardless of build configuration):
-   - QOS (Quality of Service), MEB (Metadata), HCB (Hop Count), BIB (Bundle Integrity), BCB (Bundle Confidentiality)
+   - MEB (Metadata), HCB (Hop Count), BIB (Bundle Integrity), BCB (Bundle Confidentiality)
 
 To enable additional extension blocks for locally sourced bundles, uncomment the corresponding lines in build-list.mk (lines 69-73).
 
