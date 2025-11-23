@@ -63,49 +63,87 @@ add_definitions(${EXT_FLAGS})
 #   add_definitions(-DIMC_EXT)
 # endif()
 
-# Check if ION-DTN submodule is initialized
-if(NOT EXISTS "${CMAKE_SOURCE_DIR}/external/ION-DTN/.git")
-  message(FATAL_ERROR "ION-DTN submodule not initialized. Run: git submodule update --init --recursive")
+# Allow users to specify custom ION source directory
+# Default to the submodule location
+set(ION_SOURCE_DIR "${CMAKE_SOURCE_DIR}/external/ION-DTN" CACHE PATH "Path to ION-DTN source directory")
+
+# Check if the specified ION source directory exists
+if(NOT EXISTS "${ION_SOURCE_DIR}")
+  message(FATAL_ERROR "ION source directory not found: ${ION_SOURCE_DIR}\n"
+    "Either initialize the submodule: git submodule update --init --recursive\n"
+    "Or specify a custom path: cmake -DION_SOURCE_DIR=/path/to/ion/source ..")
 endif()
 
 # Define directories
-set(ION_DTN_DIR ${CMAKE_SOURCE_DIR}/external/ION-DTN)
+set(ION_DTN_DIR ${ION_SOURCE_DIR})
 set(SRC_DIR ${ION_DTN_DIR})
 set(INC_DIR ${ION_DTN_DIR})
 set(LIB_DIR ${CMAKE_SOURCE_DIR}/lib)
 set(BIN_DIR ${CMAKE_SOURCE_DIR}/bin)
 set(MAN_DIR ${CMAKE_SOURCE_DIR}/man)
-set(TESTS_DIR ${CMAKE_SOURCE_DIR}/tests) # Define TESTS_DIR for test target
+set(TESTS_DIR ${ION_DTN_DIR}/tests) # Point to submodule tests directory
+
+# Helper function to find source files in ION-DTN's distributed directory structure
+# Searches in common subdirectories: utils/, daemon/, test/, library/, ltp/, udp/, stcp/, bp/, etc.
+function(find_ion_source_file output_var module_dir filename)
+  set(search_paths
+    "${module_dir}/${filename}"
+    "${module_dir}/utils/${filename}"
+    "${module_dir}/daemon/${filename}"
+    "${module_dir}/test/${filename}"
+    "${module_dir}/library/${filename}"
+    "${module_dir}/sdr/${filename}"
+    "${module_dir}/crypto/${filename}"
+    "${module_dir}/bulk/STUB_BULK/${filename}"
+    "${module_dir}/ltp/${filename}"
+    "${module_dir}/udp/${filename}"
+    "${module_dir}/stcp/${filename}"
+    "${module_dir}/bp/${filename}"
+    "${module_dir}/ipn/${filename}"
+  )
+
+  foreach(path IN LISTS search_paths)
+    if(EXISTS "${path}")
+      set(${output_var} "${path}" PARENT_SCOPE)
+      return()
+    endif()
+  endforeach()
+
+  # If not found, return empty and let caller handle the error
+  set(${output_var} "" PARENT_SCOPE)
+endfunction()
 
 #
 # ICI source files
+# Note: Files are in subdirectories within ici/ (library/, sdr/, crypto/, bulk/)
 #
 set(ICI_SOURCES
-  ${SRC_DIR}/ici/bulk.c
-  ${SRC_DIR}/ici/csi.c
-  ${SRC_DIR}/ici/ionsec.c
-  ${SRC_DIR}/ici/memmgr.c
-  ${SRC_DIR}/ici/platform_sm.c
-  ${SRC_DIR}/ici/radix.c
-  ${SRC_DIR}/ici/sdrcatlg.c
-  ${SRC_DIR}/ici/sdrmgt.c
-  ${SRC_DIR}/ici/smrbt.c
-  ${SRC_DIR}/ici/cbor.c
-  ${SRC_DIR}/ici/owltsim.c
-  ${SRC_DIR}/ici/psm.c
-  ${SRC_DIR}/ici/rfx.c
-  ${SRC_DIR}/ici/sdrhash.c
-  ${SRC_DIR}/ici/sdrstring.c
-  ${SRC_DIR}/ici/sdrxn.c
-  ${SRC_DIR}/ici/sptrace.c
-  ${SRC_DIR}/ici/crc.c
-  ${SRC_DIR}/ici/ion.c
-  ${SRC_DIR}/ici/lyst.c
-  ${SRC_DIR}/ici/platform.c
-  ${SRC_DIR}/ici/sdrlist.c
-  ${SRC_DIR}/ici/sdrtable.c
-  ${SRC_DIR}/ici/smlist.c
-  ${SRC_DIR}/ici/zco.c
+  ${SRC_DIR}/ici/bulk/STUB_BULK/bulk.c
+  ${SRC_DIR}/ici/crypto/NULL_SUITES/csi.c
+  ${SRC_DIR}/ici/library/ionsec.c
+  ${SRC_DIR}/ici/library/memmgr.c
+  ${SRC_DIR}/ici/library/platform_sm.c
+  ${SRC_DIR}/ici/library/radix.c
+  ${SRC_DIR}/ici/sdr/sdrcatlg.c
+  ${SRC_DIR}/ici/sdr/sdrmgt.c
+  ${SRC_DIR}/ici/library/smrbt.c
+  ${SRC_DIR}/ici/library/cbor.c
+  ${SRC_DIR}/ici/library/psm.c
+  ${SRC_DIR}/ici/library/rfx.c
+  ${SRC_DIR}/ici/sdr/sdrhash.c
+  ${SRC_DIR}/ici/sdr/sdrstring.c
+  ${SRC_DIR}/ici/sdr/sdrxn.c
+  ${SRC_DIR}/ici/library/sptrace.c
+  ${SRC_DIR}/ici/library/crc.c
+  ${SRC_DIR}/ici/library/ion.c
+  ${SRC_DIR}/ici/library/lyst.c
+  ${SRC_DIR}/ici/library/platform.c
+  ${SRC_DIR}/ici/sdr/sdrlist.c
+  ${SRC_DIR}/ici/sdr/sdrtable.c
+  ${SRC_DIR}/ici/library/smlist.c
+  ${SRC_DIR}/ici/library/zco.c
+  ${SRC_DIR}/ici/library/ion_admin.c
+  ${SRC_DIR}/ici/library/ion_network.c
 )
 
 if(NOT ICI_SOURCES)
@@ -123,15 +161,16 @@ set(ICI_PROGRAMS
   owltsim
 )
 
-# 
+#
 # LTP source files
+# Note: Files are in subdirectories within ltp/ (library/, sda/, udp/)
 #
 set(LTP_SOURCES
-  ${SRC_DIR}/ltp/libltp.c
-  ${SRC_DIR}/ltp/libltpP.c
-  ${SRC_DIR}/ltp/libsda.c
-  ${SRC_DIR}/ltp/libudplsa.c
-  ${SRC_DIR}/ltp/ltpei.c
+  ${SRC_DIR}/ltp/library/libltp.c
+  ${SRC_DIR}/ltp/library/libltpP.c
+  ${SRC_DIR}/ltp/sda/libsda.c
+  ${SRC_DIR}/ltp/udp/libudplsa.c
+  ${SRC_DIR}/ltp/library/ltpei.c
 )
 
 if(NOT LTP_SOURCES)
@@ -153,42 +192,47 @@ set(LTP_PROGRAMS
 #
 # BP source files (based on libbp.mk and ION-DTN submodule)
 #
+#
+# BP source files
+# Note: Files are in subdirectories within bpv7/ (library/, bpsec/, cgr/, ipn/, etc.)
+# Generated using: python3 scripts/generate_cmake_sources.py external/ION-DTN
+#
 set(BP_SOURCES
-  ${SRC_DIR}/bpv7/bae.c
-  ${SRC_DIR}/bpv7/bpsec_instr.c
-  ${SRC_DIR}/bpv7/bcb_aes_gcm_sc.c
-  ${SRC_DIR}/bpv7/bpsec_policy.c
-  ${SRC_DIR}/bpv7/meb.c
-  ${SRC_DIR}/bpv7/bcb.c
-  ${SRC_DIR}/bpv7/bpsec_policy_event.c
-  ${SRC_DIR}/bpv7/libbp.c
-  ${SRC_DIR}/bpv7/pnb.c
-  ${SRC_DIR}/bpv7/bei.c
-  ${SRC_DIR}/bpv7/bpsec_policy_eventset.c
-  ${SRC_DIR}/bpv7/eureka.c
-  ${SRC_DIR}/bpv7/libbpP.c
-  ${SRC_DIR}/bpv7/rfc9173_utils.c
-  ${SRC_DIR}/bpv7/bib.c
-  ${SRC_DIR}/bpv7/bpsec_policy_rule.c
-  ${SRC_DIR}/bpv7/hcb.c          
-  ${SRC_DIR}/bpv7/libcgr.c      
-  ${SRC_DIR}/bpv7/saga.c
-  ${SRC_DIR}/bpv7/bibe.c
-  ${SRC_DIR}/bpv7/bpsec_util.c
-  ${SRC_DIR}/bpv7/imc.c
-  ${SRC_DIR}/bpv7/libimcfw.c
-  ${SRC_DIR}/bpv7/sci.c
-  ${SRC_DIR}/bpv7/bib_hmac_sha2_sc.c
-  ${SRC_DIR}/bpv7/ion_test_sc.c
-  ${SRC_DIR}/bpv7/libipnfw.c
-  ${SRC_DIR}/bpv7/sci_valmap.c
-  ${SRC_DIR}/bpv7/bpq.c
-  ${SRC_DIR}/bpv7/libstcpcla.c
-  ${SRC_DIR}/bpv7/sc_util.c
-  ${SRC_DIR}/bpv7/libudpcla.c
-  ${SRC_DIR}/bpv7/sc_value.c
-  ${SRC_DIR}/bpv7/bpsec_asb.c
-  ${SRC_DIR}/bpv7/snw.c
+  ${SRC_DIR}/bpv7/library/ext/bae/bae.c
+  ${SRC_DIR}/bpv7/bpsec/instr/bpsec_instr.c
+  ${SRC_DIR}/bpv7/bpsec/sci/bcb_aes_gcm_sc.c
+  ${SRC_DIR}/bpv7/bpsec/policy/bpsec_policy.c
+  ${SRC_DIR}/bpv7/library/ext/meb/meb.c
+  ${SRC_DIR}/bpv7/library/ext/bpsec/bcb.c
+  ${SRC_DIR}/bpv7/bpsec/policy/bpsec_policy_event.c
+  ${SRC_DIR}/bpv7/library/libbp.c
+  ${SRC_DIR}/bpv7/library/ext/pnb/pnb.c
+  ${SRC_DIR}/bpv7/library/bei.c
+  ${SRC_DIR}/bpv7/bpsec/policy/bpsec_policy_eventset.c
+  ${SRC_DIR}/bpv7/library/eureka.c
+  ${SRC_DIR}/bpv7/library/libbpP.c
+  ${SRC_DIR}/bpv7/bpsec/sci/rfc9173_utils.c
+  ${SRC_DIR}/bpv7/library/ext/bpsec/bib.c
+  ${SRC_DIR}/bpv7/bpsec/policy/bpsec_policy_rule.c
+  ${SRC_DIR}/bpv7/library/ext/hcb/hcb.c
+  ${SRC_DIR}/bpv7/cgr/libcgr.c
+  ${SRC_DIR}/bpv7/saga/saga.c
+  ${SRC_DIR}/bpv7/bibe/bibe.c
+  ${SRC_DIR}/bpv7/bpsec/utils/bpsec_util.c
+  ${SRC_DIR}/bpv7/library/ext/imc/imc.c
+  ${SRC_DIR}/bpv7/imc/libimcfw.c
+  ${SRC_DIR}/bpv7/bpsec/sci/sci.c
+  ${SRC_DIR}/bpv7/bpsec/sci/bib_hmac_sha2_sc.c
+  ${SRC_DIR}/bpv7/bpsec/sci/ion_test_sc.c
+  ${SRC_DIR}/bpv7/ipn/libipnfw.c
+  ${SRC_DIR}/bpv7/bpsec/sci/sci_valmap.c
+  ${SRC_DIR}/bpv7/library/ext/bpq/bpq.c
+  ${SRC_DIR}/bpv7/stcp/libstcpcla.c
+  ${SRC_DIR}/bpv7/bpsec/sci/sc_util.c
+  ${SRC_DIR}/bpv7/udp/libudpcla.c
+  ${SRC_DIR}/bpv7/bpsec/sci/sc_value.c
+  ${SRC_DIR}/bpv7/bpsec/utils/bpsec_asb.c
+  ${SRC_DIR}/bpv7/library/ext/snw/snw.c
 )
 
 if(NOT BP_SOURCES)
@@ -229,11 +273,16 @@ set(BP_EXECUTABLES
 #
 # CFDP source files
 #
+#
+# CFDP source files
+# Note: Files are in subdirectories within cfdp/ (library/, bp/)
+# Generated using: python3 scripts/generate_cmake_sources.py external/ION-DTN
+#
 set(CFDP_SOURCES
-  ${SRC_DIR}/cfdp/bputa.c
-  ${SRC_DIR}/cfdp/libcfdp.c
-  ${SRC_DIR}/cfdp/libcfdpops.c
-  ${SRC_DIR}/cfdp/libcfdpP.c
+  ${SRC_DIR}/cfdp/bp/bputa.c
+  ${SRC_DIR}/cfdp/library/libcfdp.c
+  ${SRC_DIR}/cfdp/library/libcfdpP.c
+  ${SRC_DIR}/cfdp/library/libcfdpops.c
 )
 
 if(NOT CFDP_SOURCES)
@@ -264,7 +313,15 @@ set(ALL_PROGRAMS ${PROGRAMS}) # Use PROGRAMS variable populated from build-list.
 
 # Static ICI library
 add_library(icicore_static STATIC ${ICI_SOURCES})
-target_include_directories(icicore_static PUBLIC ${INC_DIR})
+target_include_directories(icicore_static PUBLIC
+  ${INC_DIR}
+  ${INC_DIR}/ici/include
+  ${INC_DIR}/ici/library
+  ${INC_DIR}/ici/crypto
+  ${INC_DIR}/ici/crypto/NULL_SUITES
+  ${INC_DIR}/ici/sdr
+  ${INC_DIR}/ici/bulk
+)
 set_target_properties(icicore_static PROPERTIES
   OUTPUT_NAME icicore
   ARCHIVE_OUTPUT_DIRECTORY ${LIB_DIR}
@@ -272,7 +329,15 @@ set_target_properties(icicore_static PROPERTIES
 
 # Shared ICI library
 add_library(icicore_shared SHARED ${ICI_SOURCES})
-target_include_directories(icicore_shared PUBLIC ${INC_DIR})
+target_include_directories(icicore_shared PUBLIC
+  ${INC_DIR}
+  ${INC_DIR}/ici/include
+  ${INC_DIR}/ici/library
+  ${INC_DIR}/ici/crypto
+  ${INC_DIR}/ici/crypto/NULL_SUITES
+  ${INC_DIR}/ici/sdr
+  ${INC_DIR}/ici/bulk
+)
 set_target_properties(icicore_shared PROPERTIES
   OUTPUT_NAME icicore
   LIBRARY_OUTPUT_DIRECTORY ${LIB_DIR}
@@ -281,7 +346,32 @@ target_link_libraries(icicore_shared PRIVATE m pthread)
 
 # Static BP library
 add_library(bpcore_static STATIC ${BP_SOURCES})
-target_include_directories(bpcore_static PUBLIC ${INC_DIR})
+target_include_directories(bpcore_static PUBLIC
+  ${INC_DIR}
+  ${INC_DIR}/ici/include
+  ${INC_DIR}/bpv7/include
+  ${INC_DIR}/bpv7/library
+  ${INC_DIR}/bpv7/library/ext
+  ${INC_DIR}/bpv7/library/ext/bpsec
+  ${INC_DIR}/bpv7/library/ext/pnb
+  ${INC_DIR}/bpv7/library/ext/bae
+  ${INC_DIR}/bpv7/library/ext/meb
+  ${INC_DIR}/bpv7/library/ext/hcb
+  ${INC_DIR}/bpv7/library/ext/bpq
+  ${INC_DIR}/bpv7/library/ext/imc
+  ${INC_DIR}/bpv7/library/ext/snw
+  ${INC_DIR}/bpv7/cgr
+  ${INC_DIR}/bpv7/bpsec
+  ${INC_DIR}/bpv7/bpsec/instr
+  ${INC_DIR}/bpv7/bpsec/policy
+  ${INC_DIR}/bpv7/bpsec/sci
+  ${INC_DIR}/bpv7/bpsec/utils
+  ${INC_DIR}/bpv7/ipn
+  ${INC_DIR}/bpv7/imc
+  ${INC_DIR}/bpv7/saga
+  ${INC_DIR}/bpv7/bibe
+  ${INC_DIR}/bpv7/dtn2
+)
 target_link_libraries(bpcore_static PRIVATE icicore_static)
 set_target_properties(bpcore_static PROPERTIES
   OUTPUT_NAME bpcore
@@ -290,7 +380,32 @@ set_target_properties(bpcore_static PROPERTIES
 
 # Shared BP library
 add_library(bpcore_shared SHARED ${BP_SOURCES})
-target_include_directories(bpcore_shared PUBLIC ${INC_DIR})
+target_include_directories(bpcore_shared PUBLIC
+  ${INC_DIR}
+  ${INC_DIR}/ici/include
+  ${INC_DIR}/bpv7/include
+  ${INC_DIR}/bpv7/library
+  ${INC_DIR}/bpv7/library/ext
+  ${INC_DIR}/bpv7/library/ext/bpsec
+  ${INC_DIR}/bpv7/library/ext/pnb
+  ${INC_DIR}/bpv7/library/ext/bae
+  ${INC_DIR}/bpv7/library/ext/meb
+  ${INC_DIR}/bpv7/library/ext/hcb
+  ${INC_DIR}/bpv7/library/ext/bpq
+  ${INC_DIR}/bpv7/library/ext/imc
+  ${INC_DIR}/bpv7/library/ext/snw
+  ${INC_DIR}/bpv7/cgr
+  ${INC_DIR}/bpv7/bpsec
+  ${INC_DIR}/bpv7/bpsec/instr
+  ${INC_DIR}/bpv7/bpsec/policy
+  ${INC_DIR}/bpv7/bpsec/sci
+  ${INC_DIR}/bpv7/bpsec/utils
+  ${INC_DIR}/bpv7/ipn
+  ${INC_DIR}/bpv7/imc
+  ${INC_DIR}/bpv7/saga
+  ${INC_DIR}/bpv7/bibe
+  ${INC_DIR}/bpv7/dtn2
+)
 target_link_libraries(bpcore_shared PRIVATE icicore_shared m pthread)
 set_target_properties(bpcore_shared PROPERTIES
   OUTPUT_NAME bpcore
@@ -299,7 +414,17 @@ set_target_properties(bpcore_shared PROPERTIES
 
 # Static LTP library
 add_library(ltpcore_static STATIC ${LTP_SOURCES})
-target_include_directories(ltpcore_static PUBLIC ${INC_DIR})
+target_include_directories(ltpcore_static PUBLIC
+  ${INC_DIR}
+  ${INC_DIR}/ici/include
+  ${INC_DIR}/bpv7/include
+  ${INC_DIR}/ltp/include
+  ${INC_DIR}/ltp/library
+  ${INC_DIR}/ltp/library/ext
+  ${INC_DIR}/ltp/library/ext/auth
+  ${INC_DIR}/ltp/sda
+  ${INC_DIR}/ltp/udp
+)
 target_link_libraries(ltpcore_static PRIVATE bpcore_static icicore_static)
 set_target_properties(ltpcore_static PROPERTIES
   OUTPUT_NAME ltpcore
@@ -308,7 +433,17 @@ set_target_properties(ltpcore_static PROPERTIES
 
 # Shared LTP library
 add_library(ltpcore_shared SHARED ${LTP_SOURCES})
-target_include_directories(ltpcore_shared PUBLIC ${INC_DIR})
+target_include_directories(ltpcore_shared PUBLIC
+  ${INC_DIR}
+  ${INC_DIR}/ici/include
+  ${INC_DIR}/bpv7/include
+  ${INC_DIR}/ltp/include
+  ${INC_DIR}/ltp/library
+  ${INC_DIR}/ltp/library/ext
+  ${INC_DIR}/ltp/library/ext/auth
+  ${INC_DIR}/ltp/sda
+  ${INC_DIR}/ltp/udp
+)
 target_link_libraries(ltpcore_shared PRIVATE bpcore_shared icicore_shared m pthread)
 set_target_properties(ltpcore_shared PROPERTIES
   OUTPUT_NAME ltpcore
@@ -317,7 +452,14 @@ set_target_properties(ltpcore_shared PROPERTIES
 
 # CFDP static library
 add_library(cfdpcore_static STATIC ${CFDP_SOURCES})
-target_include_directories(cfdpcore_static PUBLIC ${INC_DIR})
+target_include_directories(cfdpcore_static PUBLIC
+  ${INC_DIR}
+  ${INC_DIR}/ici/include
+  ${INC_DIR}/bpv7/include
+  ${INC_DIR}/ltp/include
+  ${INC_DIR}/cfdp/include
+  ${INC_DIR}/cfdp/library
+)
 target_link_libraries(cfdpcore_static PRIVATE icicore_static bpcore_static)
 set_target_properties(cfdpcore_static PROPERTIES
   OUTPUT_NAME cfdpcore
@@ -326,7 +468,14 @@ set_target_properties(cfdpcore_static PROPERTIES
 
 # CFDP shared library
 add_library(cfdpcore_shared SHARED ${CFDP_SOURCES})
-target_include_directories(cfdpcore_shared PUBLIC ${INC_DIR})
+target_include_directories(cfdpcore_shared PUBLIC
+  ${INC_DIR}
+  ${INC_DIR}/ici/include
+  ${INC_DIR}/bpv7/include
+  ${INC_DIR}/ltp/include
+  ${INC_DIR}/cfdp/include
+  ${INC_DIR}/cfdp/library
+)
 target_link_libraries(cfdpcore_shared PRIVATE icicore_shared bpcore_shared m pthread)
 set_target_properties(cfdpcore_shared PROPERTIES
   OUTPUT_NAME cfdpcore
@@ -336,10 +485,11 @@ set_target_properties(cfdpcore_shared PROPERTIES
 # ICI Executables
 foreach(PROG IN LISTS ICI_PROGRAMS)
   if(${PROG} IN_LIST ALL_PROGRAMS) # Only build if it's in the master PROGRAMS list
-    if(NOT EXISTS "${SRC_DIR}/ici/${PROG}.c")
-      message(FATAL_ERROR "Source file ${SRC_DIR}/ici/${PROG}.c not found.")
+    find_ion_source_file(PROG_SRC "${SRC_DIR}/ici" "${PROG}.c")
+    if(NOT PROG_SRC)
+      message(FATAL_ERROR "Source file for ${PROG} not found in ION-DTN ici/ subdirectories")
     endif()
-    add_executable(${PROG} ${SRC_DIR}/ici/${PROG}.c)
+    add_executable(${PROG} ${PROG_SRC})
     target_include_directories(${PROG} PRIVATE ${INC_DIR})
     target_link_libraries(${PROG} PRIVATE icicore_static m pthread)
     set_target_properties(${PROG} PROPERTIES
@@ -351,10 +501,11 @@ endforeach()
 # BP Executables
 foreach(PROG IN LISTS BP_EXECUTABLES)
   if(${PROG} IN_LIST ALL_PROGRAMS) # Only build if it's in the master PROGRAMS list
-    if(NOT EXISTS "${SRC_DIR}/bpv7/${PROG}.c")
-      message(FATAL_ERROR "Source file ${SRC_DIR}/bpv7/${PROG}.c not found.")
+    find_ion_source_file(PROG_SRC "${SRC_DIR}/bpv7" "${PROG}.c")
+    if(NOT PROG_SRC)
+      message(FATAL_ERROR "Source file for ${PROG} not found in ION-DTN bpv7/ subdirectories")
     endif()
-    add_executable(${PROG} ${SRC_DIR}/bpv7/${PROG}.c)
+    add_executable(${PROG} ${PROG_SRC})
     target_include_directories(${PROG} PRIVATE ${INC_DIR})
     target_link_libraries(${PROG} PRIVATE bpcore_static icicore_static m pthread)
     set_target_properties(${PROG} PROPERTIES
@@ -366,15 +517,16 @@ endforeach()
 # LTP Executables
 foreach(PROG IN LISTS LTP_PROGRAMS)
   if(${PROG} IN_LIST ALL_PROGRAMS) # Only build if it's in the master PROGRAMS list
+    # ltpcli and ltpclo are in bpv7/ltp/, others are in ltp/
     if(PROG STREQUAL "ltpcli" OR PROG STREQUAL "ltpclo")
-      set(SRC_PATH "${SRC_DIR}/bpv7/${PROG}.c")
+      find_ion_source_file(PROG_SRC "${SRC_DIR}/bpv7" "${PROG}.c")
     else()
-      set(SRC_PATH "${SRC_DIR}/ltp/${PROG}.c")
+      find_ion_source_file(PROG_SRC "${SRC_DIR}/ltp" "${PROG}.c")
     endif()
-    if(NOT EXISTS "${SRC_PATH}")
-      message(FATAL_ERROR "Source file ${SRC_PATH} not found.")
+    if(NOT PROG_SRC)
+      message(FATAL_ERROR "Source file for ${PROG} not found in ION-DTN subdirectories")
     endif()
-    add_executable(${PROG} ${SRC_PATH})
+    add_executable(${PROG} ${PROG_SRC})
     target_include_directories(${PROG} PRIVATE ${INC_DIR})
     target_link_libraries(${PROG} PRIVATE ltpcore_static bpcore_static icicore_static m pthread)
     set_target_properties(${PROG} PROPERTIES
@@ -386,10 +538,12 @@ endforeach()
 # CFDP executables
 foreach(PROG IN LISTS CFDP_PROGRAMS)
   if(${PROG} IN_LIST ALL_PROGRAMS) # Only build if it's in the master PROGRAMS list
-    if(NOT EXISTS "${SRC_DIR}/cfdp/${PROG}.c")
-      message(FATAL_ERROR "Source file ${SRC_DIR}/cfdp/${PROG}.c not found.")
+    # bputa is in cfdp/bp/, others are in cfdp/utils/, cfdp/daemon/, or cfdp/test/
+    find_ion_source_file(PROG_SRC "${SRC_DIR}/cfdp" "${PROG}.c")
+    if(NOT PROG_SRC)
+      message(FATAL_ERROR "Source file for ${PROG} not found in ION-DTN cfdp/ subdirectories")
     endif()
-    add_executable(${PROG} ${SRC_DIR}/cfdp/${PROG}.c)
+    add_executable(${PROG} ${PROG_SRC})
     target_include_directories(${PROG} PRIVATE ${INC_DIR})
     target_link_libraries(${PROG} PRIVATE cfdpcore_static bpcore_static icicore_static m pthread)
     set_target_properties(${PROG} PROPERTIES
@@ -400,13 +554,27 @@ endforeach()
 
 # ionrestart executable (only build if it's in the master PROGRAMS list)
 if("ionrestart" IN_LIST ALL_PROGRAMS)
-  add_executable(ionrestart ${SRC_DIR}/restart/ionrestart.c)
+  find_ion_source_file(IONRESTART_SRC "${SRC_DIR}/restart" "ionrestart.c")
+  if(NOT IONRESTART_SRC)
+    message(FATAL_ERROR "Source file for ionrestart not found in ION-DTN restart/ subdirectories")
+  endif()
+  add_executable(ionrestart ${IONRESTART_SRC})
   target_include_directories(ionrestart PRIVATE ${INC_DIR})
   target_link_libraries(ionrestart PRIVATE cfdpcore_static ltpcore_static bpcore_static icicore_static m pthread)
   set_target_properties(ionrestart PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR}
   )
 endif()
+
+# Copy utility scripts from ION-DTN to bin directory
+set(ION_SCRIPTS ionstart ionstart.awk ionstop killm ionprocesslist.sh)
+foreach(SCRIPT IN LISTS ION_SCRIPTS)
+  configure_file(
+    ${SRC_DIR}/${SCRIPT}
+    ${BIN_DIR}/${SCRIPT}
+    COPYONLY
+  )
+endforeach()
 
 install(TARGETS ${ALL_PROGRAMS}
   RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
@@ -427,7 +595,30 @@ list(REMOVE_ITEM MAN_PROGRAMS ionwarn ltpdeliv)
 # Man pages generation using pod2man
 set(MAN_PAGES)
 foreach(PROG IN LISTS MAN_PROGRAMS)
-  set(POD_FILE ${SRC_DIR}/man/${PROG}.pod)
+  # Search for pod file in multiple locations (ION-DTN structure has pod files in doc/pod1 subdirectories)
+  set(POD_FILE "POD_FILE-NOTFOUND")
+  set(POD_SEARCH_PATHS
+    ${SRC_DIR}/man
+    ${SRC_DIR}/ici/doc/pod1
+    ${SRC_DIR}/bpv7/doc/pod1
+    ${SRC_DIR}/ltp/doc/pod1
+    ${SRC_DIR}/cfdp/doc/pod1
+    ${SRC_DIR}/restart/doc/pod1
+  )
+
+  foreach(POD_PATH IN LISTS POD_SEARCH_PATHS)
+    if(EXISTS "${POD_PATH}/${PROG}.pod")
+      set(POD_FILE "${POD_PATH}/${PROG}.pod")
+      break()
+    endif()
+  endforeach()
+
+  # Skip if pod file not found
+  if(POD_FILE STREQUAL "POD_FILE-NOTFOUND")
+    message(WARNING "Pod file not found for program: ${PROG}")
+    continue()
+  endif()
+
   set(MAN_FILE ${MAN_DIR}/${PROG}.1)
   set(MAN_GZ_FILE ${MAN_DIR}/${PROG}.1.gz)
   list(APPEND MAN_PAGES ${MAN_GZ_FILE})
@@ -487,13 +678,13 @@ install(TARGETS ltpcore_shared
 )
 
 
-install(FILES
+install(PROGRAMS
   ${BIN_DIR}/ionstart
   ${BIN_DIR}/ionstart.awk
   ${BIN_DIR}/ionstop
   ${BIN_DIR}/killm
+  ${BIN_DIR}/ionprocesslist.sh
   DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
-  OPTIONAL
 )
 install(FILES ${MAN_PAGES}
   DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1
@@ -503,16 +694,18 @@ install(FILES ${MAN_PAGES}
 # Clean_all target: remove all build artifacts (but keep .gitkeep files)
 add_custom_target(clean_all
   COMMAND ${CMAKE_COMMAND} -E remove -f ${LIB_DIR}/* !${LIB_DIR}/.gitkeep
-  COMMAND ${CMAKE_COMMAND} -E remove -f ${BIN_DIR}/* !${BIN_DIR}/.gitkeep !${BIN_DIR}/ionstart !${BIN_DIR}/ionstart.awk !${BIN_DIR}/ionstop !${BIN_DIR}/killm
+  COMMAND ${CMAKE_COMMAND} -E remove -f ${BIN_DIR}/* !${BIN_DIR}/.gitkeep !${BIN_DIR}/ionstart !${BIN_DIR}/ionstart.awk !${BIN_DIR}/ionstop !${BIN_DIR}/killm !${BIN_DIR}/ionprocesslist.sh
   COMMAND ${CMAKE_COMMAND} -E remove -f ${MAN_DIR}/* !${MAN_DIR}/.gitkeep
   COMMENT "Cleaning all build artifacts while preserving essential files"
 )
 
 
 # Distclean target
+# Note: Only cleans build artifacts and the legacy src/inc directories (used by extract.sh method)
+# Does NOT clean the external/ION-DTN submodule directory
 add_custom_target(distclean
-  COMMAND find ${INC_DIR} -mindepth 1 ! -name '.gitkeep' -delete
-  COMMAND find ${SRC_DIR} -mindepth 1 ! -name '.gitkeep' -delete
+  COMMAND find ${CMAKE_SOURCE_DIR}/inc -mindepth 1 ! -name '.gitkeep' -delete 2>/dev/null || true
+  COMMAND find ${CMAKE_SOURCE_DIR}/src -mindepth 1 ! -name '.gitkeep' -delete 2>/dev/null || true
   COMMAND find ${LIB_DIR} -mindepth 1 ! -name '.gitkeep' -delete
   COMMAND find ${BIN_DIR} -mindepth 1 ! -name '.gitkeep' -delete
   COMMAND find ${MAN_DIR} -mindepth 1 ! -name '.gitkeep' -delete
@@ -520,7 +713,7 @@ add_custom_target(distclean
   COMMAND ${CMAKE_COMMAND} -E remove -f ${CMAKE_SOURCE_DIR}/configs
   COMMAND ${CMAKE_COMMAND} -E remove -f ${CMAKE_SOURCE_DIR}/scripts/macOS/install_macos_sysctl.sh
   COMMAND ${CMAKE_COMMAND} -E remove -f ${CMAKE_SOURCE_DIR}/scripts/macOS/sysctl_script.sh
-  COMMENT "Removing all build artifacts and extracted source files while preserving .gitkeep files"
+  COMMENT "Removing all build artifacts and legacy extracted source files while preserving .gitkeep files"
 )
 
 # Generate list of executable paths for uninstall
@@ -551,6 +744,7 @@ add_custom_target(uninstall
     ${CMAKE_INSTALL_PREFIX}/bin/ionstart.awk
     ${CMAKE_INSTALL_PREFIX}/bin/ionstop
     ${CMAKE_INSTALL_PREFIX}/bin/killm
+    ${CMAKE_INSTALL_PREFIX}/bin/ionprocesslist.sh
   COMMAND ${CMAKE_COMMAND} -E remove -f
     ${MAN_PAGES_FILES}
   COMMENT "Uninstalling ION-Core: libraries, binaries, scripts, man pages"

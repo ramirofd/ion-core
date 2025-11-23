@@ -29,50 +29,118 @@
 
 ## Preliminary Notes
 
-Ion-core assumes the typical Linux OS installation location for `make` and `gcc`. 
+Ion-core assumes the typical Linux OS installation location for `make` and `gcc`.
 
-Each ion-core version is designed to work with the corresponding version of ION Open Source release, e.g., ion-core 4.1.2 uses the ION open-source release version 4.1.2 as its sources.
+Each ion-core version is designed to work with the corresponding version of ION Open Source release, e.g., ion-core 4.1.4 uses the ION open-source release version 4.1.4 as its sources.
 
-Ion-core creates absolute path symbolic links to source files from the ION-DTN repo specified by the user. If you move the ION-DTN repo or the ion-core repo, you will need to update the symbolic links by re-running the `extract.sh` script and point to the new location.
+**For CMake builds (Method 1):** ION source code is included as a git submodule at `external/ION-DTN`. You can also specify a custom ION source directory using the `ION_SOURCE_DIR` CMake option. CMake builds use the ION source files directly without modifications.
 
-As part of the build process, the extract script will modify two ION source files (`bpsec_policy_rule.c`,`bpextension.c`) and place copies inside the `src` folder in ion-core. The original source files in the ION open source repo will not be modified. The modifications are very minor and only to the extend needed to allow ion-core build to turn-on/off selected extension blocks; they do not alter the behavior of extension block handling.
+**For Makefile builds (Method 2):** Ion-core creates absolute path symbolic links to source files from the ION-DTN repo specified by the user. If you move the ION-DTN repo or the ion-core repo, you will need to update the symbolic links by re-running the `extract.sh` script and point to the new location.
+
+**Note on source modifications (Makefile builds only):**
+- **ION 4.1.4 and later:** The extract script modifies one ION source file (`bpsec_policy_rule.c`) to adjust an include path for compatibility with the flat symbolic link structure. The modification changes `#include "../../utils/bpsecadmin_config.h"` to `#include "bpsecadmin_config.h"`. The original source file in the ION open source repo is not modified.
+- **Earlier versions:** The extract script modifies two ION source files (`bpsec_policy_rule.c`, `bpextension.c`) and places copies inside the `src` folder. The modifications are very minor and only to the extent needed to allow ion-core build to turn-on/off selected extension blocks.
 
 ## Build & Install
 
-Be sure you have the tools installed:
+Ion-core supports two build methods:
+
+### Method 1: CMake Build with Git Submodule (Recommended)
+
+This method uses CMake and includes ION-DTN source code as a git submodule, preserving full commit history.
+
+**Prerequisites:**
+```bash
+sudo apt update
+sudo apt install make gcc cmake git
+```
+
+**Build steps:**
+```bash
+# Clone ion-core with submodules
+git clone --recursive https://github.com/nasa-jpl/ion-core-dev.git
+cd ion-core-dev
+
+# If you already cloned without --recursive, initialize the submodule:
+git submodule update --init --recursive
+
+# Create build directory and configure
+mkdir -p build
+cd build
+cmake ..
+
+# Build and install
+make
+sudo make install
+sudo ldconfig  # Linux only
+```
+
+**Using a custom ION source directory:**
+
+If you want to use a different ION source directory instead of the submodule:
+```bash
+cmake -DION_SOURCE_DIR=/path/to/your/ION-DTN ..
+make
+sudo make install
+```
+
+**Generate man pages:**
+```bash
+make man
+```
+
+### Method 2: Makefile Build with extract.sh (Legacy)
+
+This method uses traditional Makefiles and the `extract.sh` script to create symbolic links to ION source files.
+
+**Prerequisites:**
 ```bash
 sudo apt update
 sudo apt install make gcc
 ```
 
+**Option A: Using an existing ION-DTN repository**
+
 Clone the ION open source code repo:
 ```bash
-cd <ion-source-codee-folder>
+cd <ion-source-code-folder>
 git clone https://github.com/nasa-jpl/ION-DTN.git
 ```
 
 Get ion-core and build:
 ```bash
-git clone https://github.com/nasa-jpl/ion-core.git
-cd ion-core
-git checkout tags/4.1.3
+git clone https://github.com/nasa-jpl/ion-core-dev.git
+cd ion-core-dev
+git checkout tags/4.1.4
 # clean out previous build
 make clean
 sudo make uninstall
 # build
-./scripts/extract.sh <your-ion-source-code-folder>/ion-dtn
+./scripts/extract.sh <your-ion-source-code-folder>/ION-DTN
 make
 sudo make install
-sudo ldconfig
+sudo ldconfig  # Linux only
 ```
 
-### Alternative: Automated download of ION Open Source Code _without commit history_
+**Option B: Automated download without commit history**
 
-You can run `./scripts/extract.sh` without supplying the path to an existing ION source code repo. In that case, the script will automatically download the appropriate ION open source code version the `tmp` folder under the ion-core directory.
+You can run `./scripts/extract.sh` without supplying a path. The script will automatically download the appropriate ION open source code version to the `tmp` folder:
 
-Then you can run `make` and `sudo make install` to install the code.
+```bash
+git clone https://github.com/nasa-jpl/ion-core-dev.git
+cd ion-core-dev
+./scripts/extract.sh
+make
+sudo make install
+sudo ldconfig  # Linux only
+```
 
-The disadvantage of this approach is that you will not have the commit history of the ION open source code and not able to submit pull requests. This is provided as a convenience for conducting quick testing.
+**Note:** This approach downloads a tarball without git history. You won't be able to submit pull requests to ION-DTN. This is provided as a convenience for quick testing.
+
+**Generate man pages:**
+```bash
+make man
+```
 
 ## Selecting ION-core Features to Build
 
@@ -284,11 +352,17 @@ This set of minimum values are sufficient to pass the regression tests under the
 1. The default make command for FreeBSD is `bmake.` ION require `gmake`. So you can either invoke `gmake` or create a symbolic link to `gmake` as `make`.
 2. Also the default bash installation locaiton is `/usr/local/bin/bash`. Current ION's test script is hardcoded to the directory `/bin/bash`. You can create a symbolic link of the installed `bash` binary in `/bin`.
 
-## Prototype: CMake Build System
+## CMake Build System
 
-A CMake build prototype is available for ion-core-4.1.3s. Please read the [build instructions.](CMake-Prototype-Instruction.md)
+CMake is now a fully supported build method for ion-core (as of version 4.1.4). See the [Build & Install](#build--install) section for detailed instructions.
 
-This prototype is only tested with all the default build options as is. If you change any of them, it may not work for this prototype. Future updates will improve the CMake build until it becomes a fully support build options.
+**Key features:**
+- Uses ION-DTN as a git submodule (`external/ION-DTN`)
+- Supports custom ION source directory via `-DION_SOURCE_DIR` option
+- Automatically searches for pod files in ION-DTN's distributed documentation structure
+- Safe `distclean` target that preserves the submodule
+
+For legacy build instructions, refer to [CMake-Prototype-Instruction.md](CMake-Prototype-Instruction.md) (if available).
 
 ## Contributing Code
 

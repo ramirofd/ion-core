@@ -47,7 +47,9 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
 endif()
 
 # Output for debugging (similar to Makefile's info messages)
-message(STATUS "OS: ${CMAKE_SIZEOF_VOID_P}-bits ${CMAKE_SYSTEM_NAME}; HW ARCH: ${CMAKE_SYSTEM_PROCESSOR}")
+# CMAKE_SIZEOF_VOID_P is in bytes, so multiply by 8 to get bits
+math(EXPR BITS "${CMAKE_SIZEOF_VOID_P} * 8")
+message(STATUS "OS: ${BITS}-bit ${CMAKE_SYSTEM_NAME}; HW ARCH: ${CMAKE_SYSTEM_PROCESSOR}")
 message(STATUS "OS_FLAGS set to: ${OS_FLAGS}")
 
 
@@ -177,9 +179,9 @@ list(APPEND PROGRAMS
 # Escaping semicolons might be necessary if they are part of the value.
 # For clean reading, each entry on a new line.
 set(COMBINATION_TESTS
-  "cfdpadmin+ltpcli+owltsim:bench-cfdp/"
-  "stcpcli:bench-stcp/"
-  "ltpcli:bench-ltp/"
+  "cfdpadmin+ltpcli+owltsim:../demos/bench-cfdp/"
+  "stcpcli:../demos/bench-stcp/"
+  "ltpcli:../demos/bench-ltp/"
   "bptrace+bpsink+ltpcli:bptrace_terminal_test/"
   "bping+bpecho+udpcli:bping/"
   "cfdpadmin+ltpcli:issue-352-bpcp-ltp/"

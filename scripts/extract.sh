@@ -528,19 +528,8 @@ while [ "x${TEST_DIRS[count]}" != "x" ]; do
     count=$((count + 1))
 done
 
-# Copy modified ION-core version of bpextensions.c
-echo "Replacing bpextensions.c with customized ion-core version"
-symlink="$INC/bpextensions.c"
-if [ -L "$symlink" ]; then
-    target=$(ls -l "$symlink" | sed 's/.* -> //')
-    cp "$SCRIPT_DIR/bpextensions-ion-core.c" "$target" || { echo "Error: Failed to copy bpextensions-ion-core.c to $target"; exit 1; }
-    echo "Overwritten source file: $target"
-else
-    echo "Error: $symlink is not a valid symlink or does not exist."
-    exit 1
-fi
-
 # Update bpsec_policy_rule.c
+# Modify the include path to work with the flat symlink structure
 echo "Updating path to header file bpsecadmin_config.h in bpsec_policy_rule.c"
 symlink="$SRC/bpv7/bpsec_policy_rule.c"
 if [ -L "$symlink" ]; then

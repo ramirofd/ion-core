@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
-SRCMAN="$1" # where symbolic links to .pod files are located
+ION_SRC="$1" # ION source directory (either external/ION-DTN or legacy src via extract.sh)
 PROGRAMS="$2"
 
-# Check if SRC is provided
-if [[ -z "$SRCMAN" ]]; then
-  echo "Error: You must supply a path to SRC folder."
+# Check if ION_SRC is provided
+if [[ -z "$ION_SRC" ]]; then
+  echo "Error: You must supply a path to ION source directory."
   exit 1
 fi
 
@@ -16,8 +16,18 @@ if [[ -z "$PROGRAMS" ]]; then
 fi
 
 POD2MAN=pod2man
-POD_DIR="${SRCMAN}"
-MAN_OUTPUT_DIR="${SRCMAN}/../../man"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MAN_OUTPUT_DIR="${SCRIPT_DIR}/../man"
+
+# Define pod file search paths (for ION-DTN submodule structure)
+POD_SEARCH_PATHS=(
+  "${ION_SRC}/man"
+  "${ION_SRC}/ici/doc/pod1"
+  "${ION_SRC}/bpv7/doc/pod1"
+  "${ION_SRC}/ltp/doc/pod1"
+  "${ION_SRC}/cfdp/doc/pod1"
+  "${ION_SRC}/restart/doc/pod1"
+)
 
 # Ensure the man output directory exists
 mkdir -p "$MAN_OUTPUT_DIR"
@@ -26,23 +36,29 @@ mkdir -p "$MAN_OUTPUT_DIR"
 IFS=' ' read -r -a prog_array <<< "$PROGRAMS"
 
 # Debugging output
-echo "Symbolic Links to .pod files = $POD_DIR"
+echo "ION source directory = $ION_SRC"
 echo "Man page output directory = $MAN_OUTPUT_DIR"
 
 for prog in "${prog_array[@]}"; do
-    full_path="${POD_DIR}/${prog}.pod"
-    echo "Checking ${full_path}..."
+    found=0
 
-    if [[ -f "$full_path" ]]; then
-        echo "File found: $(ls -l "$full_path")"
-        if $POD2MAN "$full_path" | gzip -c > "${MAN_OUTPUT_DIR}/${prog}.1.gz"; then
-            echo "Generated man page for $prog"
-        else
-            echo "ERROR: Failed to generate man page for $prog"
+    # Search for pod file in all possible locations
+    for pod_dir in "${POD_SEARCH_PATHS[@]}"; do
+        full_path="${pod_dir}/${prog}.pod"
+
+        if [[ -f "$full_path" ]]; then
+            echo "Found pod file: $full_path"
+            if $POD2MAN "$full_path" | gzip -c > "${MAN_OUTPUT_DIR}/${prog}.1.gz"; then
+                echo "Generated man page for $prog"
+                found=1
+                break
+            else
+                echo "ERROR: Failed to generate man page for $prog"
+            fi
         fi
-    else
-        echo "Documentation for $prog is not available."
-        echo "ls output for $full_path: $(ls -l "$full_path")"
-        echo "Target file for symlink: $(readlink "$full_path")"
+    done
+
+    if [[ $found -eq 0 ]]; then
+        echo "WARNING: Documentation for $prog is not available in any of the search paths."
     fi
 done
