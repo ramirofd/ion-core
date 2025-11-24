@@ -1,13 +1,13 @@
 SHELL := /usr/bin/env bash
 #
-# Build list for ION-core 4.1.3
+# Build list for ION-core 4.1.4-b.1
 #
 BUILD_LIST_INCLUDED = YES
 
 ######################
 # Set version number
 ######################
-VER := -DVNAME=ION-CORE-4.1.3s
+VER := -DVNAME=ION-CORE-4.1.4-b.1
 
 ######################
 # ION-CORE Build Flag

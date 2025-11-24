@@ -1,12 +1,12 @@
 #
-# Build list for ION-core 4.1.3 (CMake equivalent)
+# Build list for ION-core 4.1.4-b.1 (CMake equivalent)
 #
 
 ######################
 # Set version number
 ######################
 # Define VER directly as a CMake variable, equivalent to -DVNAME in Makefile
-set(VER "-DVNAME=ION-CORE-4.1.3s")
+set(VER "-DVNAME=ION-CORE-4.1.4-b.1")
 
 ######################
 # ION-CORE Build Flag
