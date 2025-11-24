@@ -23,7 +23,6 @@ $(error libltp.mk is not found or not included, cannot build.)
 endif
 
 SRC_ltpclo := $(SRC_BPV7)/ltpclo.c \
-	$(SRC_BPV7)/libipnfw.c \
 	$(SRC_libltp) \
 	$(SRC_libici) \
 	$(SRC_libbp)

@@ -3,7 +3,8 @@
 - [ION-Core for Linux (and WSL) \& MacOS](#ion-core-for-linux-and-wsl--macos)
   - [Preliminary Notes](#preliminary-notes)
   - [Build \& Install](#build--install)
-    - [Alternative: Automated download of ION Open Source Code _without commit history_](#alternative-automated-download-of-ion-open-source-code-without-commit-history)
+    - [Method 1: CMake Build with Git Submodule (Recommended)](#method-1-cmake-build-with-git-submodule-recommended)
+    - [Method 2: Makefile Build with extract.sh (Legacy)](#method-2-makefile-build-with-extractsh-legacy)
   - [Selecting ION-core Features to Build](#selecting-ion-core-features-to-build)
     - [Extension Blocks Build Options](#extension-blocks-build-options)
   - [Man Page Installation](#man-page-installation)
@@ -16,7 +17,19 @@
   - [Building static and dynamic library](#building-static-and-dynamic-library)
   - [Prototype: macOS Build](#prototype-macos-build)
   - [Prototype: FreeBSD Build Considerations](#prototype-freebsd-build-considerations)
-  - [Prototype: CMake Build System](#prototype-cmake-build-system)
+  - [CMake Build System - Detailed Reference](#cmake-build-system---detailed-reference)
+    - [CMake Build Commands Reference](#cmake-build-commands-reference)
+    - [Detailed Build, Test, and Cleanup Process](#detailed-build-test-and-cleanup-process)
+      - [Prerequisites](#prerequisites)
+      - [1. Build the Project](#1-build-the-project)
+      - [2. Install the Project](#2-install-the-project)
+      - [3. Test the Project](#3-test-the-project)
+      - [4. Uninstall the Project](#4-uninstall-the-project)
+      - [5. Clean Up Build Artifacts](#5-clean-up-build-artifacts)
+      - [6. Perform Full Cleanup](#6-perform-full-cleanup)
+      - [7. Remove Build Directory](#7-remove-build-directory)
+      - [8. Verify Project State](#8-verify-project-state)
+    - [Additional CMake Notes](#additional-cmake-notes)
   - [Contributing Code](#contributing-code)
   - [WSL2 Networking Issue](#wsl2-networking-issue)
   - [Release Notes](#release-notes)
@@ -33,12 +46,21 @@ Ion-core assumes the typical Linux OS installation location for `make` and `gcc`
 
 Each ion-core version is designed to work with the corresponding version of ION Open Source release, e.g., ion-core 4.1.4 uses the ION open-source release version 4.1.4 as its sources.
 
-**For CMake builds (Method 1):** ION source code is included as a git submodule at `external/ION-DTN`. You can also specify a custom ION source directory using the `ION_SOURCE_DIR` CMake option. CMake builds use the ION source files directly without modifications.
+**For CMake builds (Method 1):**
+- **Default:** Uses ION source code from the git submodule at `external/ION-DTN` (preserves full commit history)
+- **Alternative:** Specify a custom ION source directory using the `ION_SOURCE_DIR` CMake option
+- **No extract.sh required:** CMake builds use the ION source files directly from their original hierarchical directory structure
+- **No symbolic links:** Does not populate `src/`, `inc/`, or `test/` directories with symbolic links
+- Uses ION source files without modifications
 
-**For Makefile builds (Method 2):** Ion-core creates absolute path symbolic links to source files from the ION-DTN repo specified by the user. If you move the ION-DTN repo or the ion-core repo, you will need to update the symbolic links by re-running the `extract.sh` script and point to the new location.
+**For Makefile builds (Method 2):**
+- **Requires extract.sh:** The `extract.sh` script must be run to prepare source files
+- **Symbolic links:** Creates absolute path symbolic links in `src/`, `inc/`, and `test/` directories pointing to the ION-DTN repo
+- **Flat directory structure:** All source and header files are linked into flat directories (no subdirectories)
+- **Important:** If you move the ION-DTN repo or the ion-core repo, you must re-run `./scripts/extract.sh` to update the symbolic links
 
 **Note on source modifications (Makefile builds only):**
-- **ION 4.1.4 and later:** The extract script modifies one ION source file (`bpsec_policy_rule.c`) to adjust an include path for compatibility with the flat symbolic link structure. The modification changes `#include "../../utils/bpsecadmin_config.h"` to `#include "bpsecadmin_config.h"`. The original source file in the ION open source repo is not modified.
+- **ION 4.1.4-b.1 and later:** The extract script modifies one ION source file (`bpsec_policy_rule.c`) to adjust an include path for compatibility with the flat symbolic link structure. The modification changes `#include "../../utils/bpsecadmin_config.h"` to `#include "bpsecadmin_config.h"`. The original source file in the ION open source repo is not modified.
 - **Earlier versions:** The extract script modifies two ION source files (`bpsec_policy_rule.c`, `bpextension.c`) and places copies inside the `src` folder. The modifications are very minor and only to the extent needed to allow ion-core build to turn-on/off selected extension blocks.
 
 ## Build & Install
@@ -91,7 +113,7 @@ make man
 
 ### Method 2: Makefile Build with extract.sh (Legacy)
 
-This method uses traditional Makefiles and the `extract.sh` script to create symbolic links to ION source files.
+This method uses traditional Makefiles and requires running the `extract.sh` script to create symbolic links to ION source files in flat `src/`, `inc/`, and `test/` directories.
 
 **Prerequisites:**
 ```bash
@@ -166,7 +188,7 @@ As of ion-core 4.1.3s, the `build-list.mk` file enables toggling which extension
     * `IMC_EXT` : IMC Multicast Extension Block
 2. There is not yet control through `build-list.mk` to set whether each locally created extension block should use CRC16, CRC32, or none applied. The default value is `noCRC` in the `./scripts/bpextension-ion-core.c`.
 3. The file `./scripts/bpextension-ion-core.c` is manually derived from the ION open-source; it is modified to support the toggling of which extension blocks to include in locally created bundle.
-4. __This is the only ION source file modified by ion-core release. This modification is manually performed by the ion-core development team right now. This file is re-evaluated for each ion-core release to make sure it is taylored for the most likely use case for users. The user of ion-core can further modify it to suite their deployment/testing needs.__
+4. __This is the only ION source file modified by ion-core release using the legacy Makefile build (Method 2). This modification is manually performed by the ion-core development team right now. This file is re-evaluated for each ion-core release to make sure it is taylored for the most likely use case for users. The user of ion-core can further modify it to suite their deployment/testing needs.__
 
 ## Man Page Installation
 
@@ -350,11 +372,10 @@ This set of minimum values are sufficient to pass the regression tests under the
 ## Prototype: FreeBSD Build Considerations
 
 1. The default make command for FreeBSD is `bmake.` ION require `gmake`. So you can either invoke `gmake` or create a symbolic link to `gmake` as `make`.
-2. Also the default bash installation locaiton is `/usr/local/bin/bash`. Current ION's test script is hardcoded to the directory `/bin/bash`. You can create a symbolic link of the installed `bash` binary in `/bin`.
 
-## CMake Build System
+## CMake Build System - Detailed Reference
 
-CMake is now a fully supported build method for ion-core (as of version 4.1.4). See the [Build & Install](#build--install) section for detailed instructions.
+CMake is now a fully supported build method for ion-core (as of version 4.1.4 beta 1). For basic build instructions, see the [Build & Install](#build--install) section. This section provides detailed CMake command reference and advanced usage.
 
 **Key features:**
 - Uses ION-DTN as a git submodule (`external/ION-DTN`)
@@ -362,7 +383,244 @@ CMake is now a fully supported build method for ion-core (as of version 4.1.4). 
 - Automatically searches for pod files in ION-DTN's distributed documentation structure
 - Safe `distclean` target that preserves the submodule
 
-For legacy build instructions, refer to [CMake-Prototype-Instruction.md](CMake-Prototype-Instruction.md) (if available).
+**Key Change:** Project configuration (like enabled programs, OS flags, and extension flags) is now primarily controlled by `build-list.cmake`. This file acts as the central configuration for your build.
+
+### CMake Build Commands Reference
+
+The following commands are used to manage the build process in a `build` directory:
+
+* **Configure the build system**:
+
+    ```bash
+    cmake ..
+    ```
+
+    This command generates build files (e.g., `Makefile`) based on `CMakeLists.txt` and the settings in `build-list.cmake`. Run this from your `build` directory.
+
+* **Build the project**:
+
+    ```bash
+    make
+    ```
+
+    This compiles libraries (e.g., `libicicore.a`, `libbpcore.so`) and executables (e.g., `ionadmin`, `bpadmin`) into the project's `lib` and `bin` directories.
+
+* **Generate man pages**:
+
+    ```bash
+    make man
+    ```
+
+    This creates compressed man pages (e.g., `man/ionadmin.1.gz`) from `.pod` files.
+
+* **Install the project**:
+
+    ```bash
+    sudo make install
+    ```
+
+    This installs libraries to `/usr/local/lib`, executables and scripts to `/usr/local/bin`, and man pages to `/usr/local/share/man/man1`.
+
+* **Uninstall the project**:
+
+    ```bash
+    sudo make uninstall
+    ```
+
+    This removes installed files from `/usr/local/lib`, `/usr/local/bin`, and `/usr/local/share/man/man1`.
+
+* **Clean build artifacts**:
+
+    ```bash
+    make clean_all
+    ```
+
+    This removes files generated during the build in `lib`, `bin`, and `man` directories, while preserving essential files like `.gitkeep` and specific scripts.
+
+* **Full cleanup**:
+
+    ```bash
+    make distclean
+    ```
+
+    This performs a complete cleanup, removing all extracted source files, headers, and all generated files in `src`, `inc`, `lib`, `bin`, `man`, `tests`, and other specific project files.
+
+* **Verbose output (for debugging)**:
+
+    ```bash
+    make <target> VERBOSE=1
+    ```
+
+    Shows detailed command execution (e.g., `make uninstall VERBOSE=1`).
+
+### Detailed Build, Test, and Cleanup Process
+
+Follow these steps to manage your ION-Core project. The process assumes you're starting from the project root directory and working with the CMake build system.
+
+#### Prerequisites
+
+* Verify required tools: CMake (3.10+), make, gcc, pod2man, gzip.
+
+    ```bash
+    cmake --version
+    gcc --version
+    pod2man --version
+    gzip --version
+    ```
+
+* Create a `build` directory (if not already present) and navigate into it:
+
+    ```bash
+    mkdir build
+    cd build
+    ```
+
+#### 1. Build the Project
+
+**Purpose**: Compile libraries, executables, and prepare for man page generation.
+
+1.  **Configure CMake**:
+
+    ```bash
+    cmake ..
+    ```
+
+    * This step reads `CMakeLists.txt` and `build-list.cmake` to set up the build system.
+    * Check for errors; if found, ensure the ION source is available and `build-list.cmake` is correctly configured.
+
+2.  **Build libraries and executables**:
+
+    ```bash
+    make
+    ```
+
+    * This compiles libraries and executables based on the programs enabled in `build-list.cmake`.
+    * Verify artifacts:
+
+        ```bash
+        ls ../lib ../bin
+        ```
+
+3.  **Generate man pages**:
+
+    ```bash
+    make man
+    ```
+
+    * This creates compressed man pages for programs included in `MAN_PROGRAMS` as configured via `build-list.cmake`.
+    * Verify:
+
+        ```bash
+        ls ../man/*.1.gz
+        ```
+
+#### 2. Install the Project
+
+**Purpose**: Install built components to the system's `/usr/local` directory.
+
+1.  **Install**:
+
+    ```bash
+    sudo make install
+    ```
+
+    * This installs libraries, executables, scripts, and man pages. CMake automatically ensures man pages are generated before installation.
+    * Verify:
+
+        ```bash
+        ls /usr/local/lib/libicicore*
+        ls /usr/local/bin/ionadmin
+        ls /usr/local/share/man/man1/ionadmin.1.gz
+        ```
+
+#### 3. Test the Project
+
+**Purpose**: Validate the built executables using test suites configured in `build-list.cmake`.
+
+1.  **Run Tests**:
+
+    ```bash
+    make test
+    ```
+
+    * This command uses the test mapping defined in `build-list.cmake` to execute the relevant `runtests` script with the specified test suites.
+    * Verify test results by examining the output in your terminal.
+
+#### 4. Uninstall the Project
+
+**Purpose**: Remove installed files from `/usr/local`.
+
+1.  **Uninstall**:
+
+    ```bash
+    sudo make uninstall
+    ```
+
+    * This removes libraries, executables, scripts, and man pages installed previously.
+    * Verify by checking that the files are no longer present in the installation paths.
+
+#### 5. Clean Up Build Artifacts
+
+**Purpose**: Remove intermediate build artifacts from the project's build directories.
+
+1.  **Clean**:
+
+    ```bash
+    make clean_all
+    ```
+
+    * This clears build artifacts from `lib`, `bin`, and `man` directories.
+
+#### 6. Perform Full Cleanup
+
+**Purpose**: Remove all extracted source files, headers, and all generated files to return the project to a pristine state.
+
+1.  **Distclean**:
+
+    ```bash
+    make distclean
+    ```
+
+    * This removes all build-related files and symbolic links.
+
+#### 7. Remove Build Directory
+
+**Purpose**: Delete the `build` directory.
+
+1.  **Remove**:
+
+    ```bash
+    cd ..
+    rm -rf build
+    ```
+
+#### 8. Verify Project State
+
+**Purpose**: Confirm the project directory is clean and ready for a fresh build or archiving.
+
+1.  **Check root**:
+
+    ```bash
+    ls -a .
+    ```
+
+    * You should mainly see source control files, original build scripts, and empty directories marked with `.gitkeep`.
+
+### Additional CMake Notes
+
+* **Permissions**: Use `sudo` for `make install` and `make uninstall`. User permissions suffice for other commands.
+
+* **Configuration via `build-list.cmake`**: This file now defines:
+    * The project version (`VER`)
+    * Platform-specific compiler flags (`OS_FLAGS`)
+    * Extension flags (`EXT_FLAGS`)
+    * The list of all programs (`PROGRAMS`) to be built and installed
+    * The mapping of program combinations to test suites (`COMBINATION_TESTS`)
+    * Modify `build-list.cmake` to customize your build configuration
+
+* **Custom Install Prefix**: If you specify a custom installation prefix (e.g., `cmake -DCMAKE_INSTALL_PREFIX=/custom/path ..`), remember to adjust your verification paths accordingly.
+
+* **Rebuilding after `distclean`**: After running `make distclean`, the ION source files may need to be re-initialized depending on your setup (submodule or custom source directory).
 
 ## Contributing Code
 

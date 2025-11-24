@@ -13,9 +13,9 @@ endif
 
 $(info build-list.mk has been included, proceed to build.)
 
-# Check if ION-DTN submodule is initialized
-ifeq ($(wildcard external/ION-DTN/.git),)
-$(error ION-DTN submodule not initialized. Run: git submodule update --init --recursive)
+# Check if source files have been extracted
+ifeq ($(wildcard src/ici/*.c),)
+$(error Source files not found. Run: ./scripts/extract.sh)
 endif
 
 ###########################
@@ -25,15 +25,14 @@ endif
 INSTALL_PATH = /usr/local/
 
 PWD := $(shell pwd)
-ION_DTN = $(PWD)/external/ION-DTN
 
-export SRC = $(ION_DTN)
-export SRC_ICI = $(ION_DTN)/ici
-export SRC_BPV7 = $(ION_DTN)/bpv7
-export SRC_CFDP = $(ION_DTN)/cfdp
-export SRC_LTP = $(ION_DTN)/ltp
-export SRC_RESTART = $(ION_DTN)/restart
-export INC = $(ION_DTN)
+export SRC = $(PWD)/src
+export SRC_ICI = $(PWD)/src/ici
+export SRC_BPV7 = $(PWD)/src/bpv7
+export SRC_CFDP = $(PWD)/src/cfdp
+export SRC_LTP = $(PWD)/src/ltp
+export SRC_RESTART = $(PWD)/src/restart
+export INC = $(PWD)/inc
 export OUT_BIN = $(PWD)/bin
 export MAN = $(PWD)/man
 export SCR = $(PWD)/scripts

@@ -15,7 +15,6 @@ $(error libbp.mk is not found or not included, cannot build.)
 endif
 
 SRC_ipnadmin := $(SRC_BPV7)/ipnadmin.c \
-	$(SRC_BPV7)/libipnfw.c \
 	$(SRC_libici) \
 	$(SRC_libbp)
 

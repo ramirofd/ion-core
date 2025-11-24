@@ -6,6 +6,14 @@ ifndef LIBICI_INCLUDED
 $(error libici.mk is not found or not included, cannot build.)
 endif
 
+# Include LTP Source
+include $(MDIR)/libltp.mk
+
+# test if inclusion is successful
+ifndef LIBLTP_INCLUDED
+$(error libltp.mk is not found or not included, cannot build.)
+endif
+
 # Include BP Source
 include $(MDIR)/libbp.mk
 
@@ -14,11 +22,12 @@ ifndef LIBBP_INCLUDED
 $(error libbp.mk is not found or not included, cannot build.)
 endif
 
-SRC_ipnadminep := $(SRC_BPV7)/ipnadminep.c \
+SRC_ionwatch := $(SRC_ICI)/ionwatch.c \
 	$(SRC_libici) \
+	$(SRC_libltp) \
 	$(SRC_libbp)
 
-ipnadminep:
-	$(GCC) $(CFLAG) -I$(INC) $(SRC_ipnadminep) \
+ionwatch:
+	$(GCC) $(CFLAG) -I$(INC) $(SRC_ionwatch) \
 	$(PLATFORM) \
-	-o $(OUT_BIN)/ipnadminep
+	-o $(OUT_BIN)/ionwatch

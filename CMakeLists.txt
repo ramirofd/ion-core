@@ -159,6 +159,7 @@ set(ICI_PROGRAMS
   psmwatch
   sdrwatch
   owltsim
+  # ionwatch is handled separately due to multi-library dependencies
 )
 
 #
@@ -251,17 +252,19 @@ set(BP_EXECUTABLES
   udpclo 
   bpchat 
   bpcounter 
-  bpdriver 
-  bpecho 
-  bping 
+  bpdriver
+  bpecho
+  # bpinspect is handled separately due to multiple source files
+  bping
   bplist
   bpcancel
   bprecvfile 
   bpsendfile 
   bpsink 
   bpsource 
-  bpstats 
-  bptrace 
+  bpstats
+  bptrace
+  bptracker
   bptransit 
   ipnadmin 
   ipnadminep 
@@ -562,6 +565,41 @@ if("ionrestart" IN_LIST ALL_PROGRAMS)
   target_include_directories(ionrestart PRIVATE ${INC_DIR})
   target_link_libraries(ionrestart PRIVATE cfdpcore_static ltpcore_static bpcore_static icicore_static m pthread)
   set_target_properties(ionrestart PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR}
+  )
+endif()
+
+# ionwatch executable (requires ICI, LTP, and BP libraries)
+if("ionwatch" IN_LIST ALL_PROGRAMS)
+  find_ion_source_file(IONWATCH_SRC "${SRC_DIR}/ici" "ionwatch.c")
+  if(NOT IONWATCH_SRC)
+    message(FATAL_ERROR "Source file for ionwatch not found in ION-DTN ici/ subdirectories")
+  endif()
+  add_executable(ionwatch ${IONWATCH_SRC})
+  target_include_directories(ionwatch PRIVATE ${INC_DIR})
+  target_link_libraries(ionwatch PRIVATE ltpcore_static bpcore_static icicore_static m pthread)
+  set_target_properties(ionwatch PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR}
+  )
+endif()
+
+# bpinspect executable (multiple source files)
+if("bpinspect" IN_LIST ALL_PROGRAMS)
+  set(BPINSPECT_SOURCES)
+  find_ion_source_file(BPINSPECT_MAIN "${SRC_DIR}/bpv7" "bpinspect.c")
+  find_ion_source_file(BPINSPECT_DATA "${SRC_DIR}/bpv7" "bpinspect_data.c")
+  find_ion_source_file(BPINSPECT_FILTER "${SRC_DIR}/bpv7" "bpinspect_filter.c")
+  find_ion_source_file(BPINSPECT_OPS "${SRC_DIR}/bpv7" "bpinspect_ops.c")
+
+  if(NOT BPINSPECT_MAIN OR NOT BPINSPECT_DATA OR NOT BPINSPECT_FILTER OR NOT BPINSPECT_OPS)
+    message(FATAL_ERROR "One or more source files for bpinspect not found in ION-DTN bpv7/ subdirectories")
+  endif()
+
+  list(APPEND BPINSPECT_SOURCES ${BPINSPECT_MAIN} ${BPINSPECT_DATA} ${BPINSPECT_FILTER} ${BPINSPECT_OPS})
+  add_executable(bpinspect ${BPINSPECT_SOURCES})
+  target_include_directories(bpinspect PRIVATE ${INC_DIR})
+  target_link_libraries(bpinspect PRIVATE bpcore_static icicore_static m pthread)
+  set_target_properties(bpinspect PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR}
   )
 endif()

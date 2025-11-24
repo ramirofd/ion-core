@@ -95,10 +95,12 @@ PROGRAMS += bpsink bpsource bpecho bping bpstats bptrace
 # This list can be modified. At least one CLA must be included.
 
 ## ICI utilities
-PROGRAMS += psmwatch sdrwatch 
+PROGRAMS += psmwatch sdrwatch
+#PROGRAMS += ionwatch
 
 ## BPv7 utilities
-PROGRAMS += bpversion 
+PROGRAMS += bpversion
+#PROGRAMS += bpinspect bptracker 
 
 ## Load-and-Go Command
 PROGRAMS += lgagent lgsend

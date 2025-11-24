@@ -14,11 +14,11 @@ ifndef LIBBP_INCLUDED
 $(error libbp.mk is not found or not included, cannot build.)
 endif
 
-SRC_ipnadminep := $(SRC_BPV7)/ipnadminep.c \
+SRC_bptracker := $(SRC_BPV7)/bptracker.c \
 	$(SRC_libici) \
 	$(SRC_libbp)
 
-ipnadminep:
-	$(GCC) $(CFLAG) -I$(INC) $(SRC_ipnadminep) \
+bptracker:
+	$(GCC) $(CFLAG) -I$(INC) $(SRC_bptracker) \
 	$(PLATFORM) \
-	-o $(OUT_BIN)/ipnadminep
+	-o $(OUT_BIN)/bptracker

@@ -120,9 +120,12 @@ list(APPEND PROGRAMS
   # ICI utilities
   psmwatch
   sdrwatch
+  # ionwatch  # Optional: Uncomment to enable
 
   # BPv7 utilities
   bpversion
+  # bpinspect  # Optional: Uncomment to enable
+  # bptracker  # Optional: Uncomment to enable
 
   # Load-and-Go Command
   lgagent

@@ -15,7 +15,6 @@ $(error libbp.mk is not found or not included, cannot build.)
 endif
 
 SRC_ipnfw := $(SRC_BPV7)/ipnfw.c \
-	$(SRC_BPV7)/libipnfw.c \
 	$(SRC_BPV7)/libcgr.c \
 	$(SRC_libici) \
 	$(SRC_libbp)

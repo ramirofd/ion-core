@@ -16,7 +16,6 @@ endif
 
 SRC_stcpclo := $(SRC_BPV7)/libstcpcla.c \
 	$(SRC_BPV7)/stcpclo.c \
-	$(SRC_BPV7)/libipnfw.c \
 	$(SRC_libici) \
 	$(SRC_libbp)
 

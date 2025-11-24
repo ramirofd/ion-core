@@ -14,11 +14,14 @@ ifndef LIBBP_INCLUDED
 $(error libbp.mk is not found or not included, cannot build.)
 endif
 
-SRC_ipnadminep := $(SRC_BPV7)/ipnadminep.c \
+SRC_bpinspect := $(SRC_BPV7)/bpinspect.c \
+	$(SRC_BPV7)/bpinspect_data.c \
+	$(SRC_BPV7)/bpinspect_filter.c \
+	$(SRC_BPV7)/bpinspect_ops.c \
 	$(SRC_libici) \
 	$(SRC_libbp)
 
-ipnadminep:
-	$(GCC) $(CFLAG) -I$(INC) $(SRC_ipnadminep) \
+bpinspect:
+	$(GCC) $(CFLAG) -I$(INC) $(SRC_bpinspect) \
 	$(PLATFORM) \
-	-o $(OUT_BIN)/ipnadminep
+	-o $(OUT_BIN)/bpinspect
