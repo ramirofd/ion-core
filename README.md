@@ -1,44 +1,43 @@
-# ION-Core for Linux (and WSL) & MacOS
+# ION-Core
 
-- [ION-Core for Linux (and WSL) \& MacOS](#ion-core-for-linux-and-wsl--macos)
+- [ION-Core](#ion-core)
   - [Preliminary Notes](#preliminary-notes)
-  - [Build \& Install](#build--install)
-    - [Method 1: CMake Build with Git Submodule (Recommended)](#method-1-cmake-build-with-git-submodule-recommended)
-    - [Method 2: Makefile Build with extract.sh (Legacy)](#method-2-makefile-build-with-extractsh-legacy)
-  - [Selecting ION-core Features to Build](#selecting-ion-core-features-to-build)
-    - [Extension Blocks Build Options](#extension-blocks-build-options)
-  - [Man Page Installation](#man-page-installation)
-  - [Creating ION configuration (".rc") files for a two-node setup](#creating-ion-configuration-rc-files-for-a-two-node-setup)
-  - [Post-installation Test](#post-installation-test)
-  - [Clean up process](#clean-up-process)
-  - [Automated Script to Build, Install, and Test Ion-core on Two Hosts](#automated-script-to-build-install-and-test-ion-core-on-two-hosts)
-  - [Adjusting Pre-Allocation of Memory/Storage Space for ION](#adjusting-pre-allocation-of-memorystorage-space-for-ion)
-  - [Tuning LTP Performance](#tuning-ltp-performance)
-  - [Building static and dynamic library](#building-static-and-dynamic-library)
-  - [Prototype: macOS Build](#prototype-macos-build)
-  - [Prototype: FreeBSD Build Considerations](#prototype-freebsd-build-considerations)
-  - [CMake Build System - Detailed Reference](#cmake-build-system---detailed-reference)
-    - [CMake Build Commands Reference](#cmake-build-commands-reference)
-    - [Detailed Build, Test, and Cleanup Process](#detailed-build-test-and-cleanup-process)
-      - [Prerequisites](#prerequisites)
-      - [1. Build the Project](#1-build-the-project)
-      - [2. Install the Project](#2-install-the-project)
-      - [3. Test the Project](#3-test-the-project)
-      - [4. Uninstall the Project](#4-uninstall-the-project)
-      - [5. Clean Up Build Artifacts](#5-clean-up-build-artifacts)
-      - [6. Perform Full Cleanup](#6-perform-full-cleanup)
-      - [7. Remove Build Directory](#7-remove-build-directory)
-      - [8. Verify Project State](#8-verify-project-state)
-    - [Additional CMake Notes](#additional-cmake-notes)
-  - [Contributing Code](#contributing-code)
-  - [WSL2 Networking Issue](#wsl2-networking-issue)
-  - [Release Notes](#release-notes)
-      - [Latest Release Tag: `4.1.3s`](#latest-release-tag-413s)
-      - [Tag: `4.1.3s-a.1`](#tag-413s-a1)
-      - [Tag: `4.1.3`](#tag-413)
-      - [Tag: `4.1.2b`](#tag-412b)
-      - [Tag: `4.1.2a`](#tag-412a)
-      - [Tag: `4.1.2`](#tag-412)
+- [Method 1: CMake Build with Git Submodule (Recommended)](#method-1-cmake-build-with-git-submodule-recommended)
+- [Method 2: Makefile Build with extract.sh (Legacy)](#method-2-makefile-build-with-extractsh-legacy)
+    - [Selecting ION-core Features to Build (Method 2)](#selecting-ion-core-features-to-build-method-2)
+    - [Extension Blocks Build Options (Method 2)](#extension-blocks-build-options-method-2)
+    - [Man Page Installation (Method 2)](#man-page-installation-method-2)
+    - [Building static and dynamic library (Method 2)](#building-static-and-dynamic-library-method-2)
+    - [Post-installation Test (Method 2)](#post-installation-test-method-2)
+    - [Clean up process (Method 2)](#clean-up-process-method-2)
+    - [Automated Script to Build, Install, and Test Ion-core on Two Hosts (Method 2)](#automated-script-to-build-install-and-test-ion-core-on-two-hosts-method-2)
+- [Creating ION configuration (".rc") files for a two-node setup](#creating-ion-configuration-rc-files-for-a-two-node-setup)
+- [Adjusting Pre-Allocation of Memory/Storage Space for ION](#adjusting-pre-allocation-of-memorystorage-space-for-ion)
+- [Tuning LTP Performance](#tuning-ltp-performance)
+- [Prototype: macOS Build](#prototype-macos-build)
+- [Prototype: FreeBSD Build Considerations](#prototype-freebsd-build-considerations)
+- [CMake Build System - Detailed Reference](#cmake-build-system---detailed-reference)
+  - [CMake Build Commands Reference](#cmake-build-commands-reference)
+  - [Detailed Build, Test, and Cleanup Process](#detailed-build-test-and-cleanup-process)
+    - [Prerequisites](#prerequisites)
+    - [1. Build the Project](#1-build-the-project)
+    - [2. Install the Project](#2-install-the-project)
+    - [3. Test the Project](#3-test-the-project)
+    - [4. Uninstall the Project](#4-uninstall-the-project)
+    - [5. Clean Up Build Artifacts](#5-clean-up-build-artifacts)
+    - [6. Perform Full Cleanup](#6-perform-full-cleanup)
+    - [7. Remove Build Directory](#7-remove-build-directory)
+    - [8. Verify Project State](#8-verify-project-state)
+  - [Additional CMake Notes](#additional-cmake-notes)
+- [Contributing Code](#contributing-code)
+- [WSL2 Networking Issue](#wsl2-networking-issue)
+- [Release Notes](#release-notes)
+  - [Latest Release Tag: `4.1.3s`](#latest-release-tag-413s)
+  - [Tag: `4.1.3s-a.1`](#tag-413s-a1)
+  - [Tag: `4.1.3`](#tag-413)
+  - [Tag: `4.1.2b`](#tag-412b)
+  - [Tag: `4.1.2a`](#tag-412a)
+  - [Tag: `4.1.2`](#tag-412)
 
 ## Preliminary Notes
 
@@ -63,11 +62,8 @@ Each ion-core version is designed to work with the corresponding version of ION 
 - **ION 4.1.4-b.1 and later:** The extract script modifies one ION source file (`bpsec_policy_rule.c`) to adjust an include path for compatibility with the flat symbolic link structure. The modification changes `#include "../../utils/bpsecadmin_config.h"` to `#include "bpsecadmin_config.h"`. The original source file in the ION open source repo is not modified.
 - **Earlier versions:** The extract script modifies two ION source files (`bpsec_policy_rule.c`, `bpextension.c`) and places copies inside the `src` folder. The modifications are very minor and only to the extent needed to allow ion-core build to turn-on/off selected extension blocks.
 
-## Build & Install
-
-Ion-core supports two build methods:
-
-### Method 1: CMake Build with Git Submodule (Recommended)
+---
+# Method 1: CMake Build with Git Submodule (Recommended)
 
 This method uses CMake and includes ION-DTN source code as a git submodule, preserving full commit history.
 
@@ -111,7 +107,11 @@ sudo make install
 make man
 ```
 
-### Method 2: Makefile Build with extract.sh (Legacy)
+**For full build, test, and cleanup instructions using CMake, see [CMake Build System - Detailed Reference](#cmake-build-system---detailed-reference)**
+
+---
+
+# Method 2: Makefile Build with extract.sh (Legacy)
 
 This method uses traditional Makefiles and requires running the `extract.sh` script to create symbolic links to ION source files in flat `src/`, `inc/`, and `test/` directories.
 
@@ -164,7 +164,7 @@ sudo ldconfig  # Linux only
 make man
 ```
 
-## Selecting ION-core Features to Build
+### Selecting ION-core Features to Build (Method 2)
 
 You can select the features you want to include in ion-core build by updating the `build-list.mk` file. See the `build-list.mk` file for the list of features.
 
@@ -176,7 +176,7 @@ You can also select which bundle protocol extension blocks to include for locall
 
 Save the changes to the `build-list.mk`, remove the old installation by running `make clean`, `sudo make uninstall`, and then rebuild ion-core.
 
-### Extension Blocks Build Options
+### Extension Blocks Build Options (Method 2)
 
 As of ion-core 4.1.3s, the `build-list.mk` file enables toggling which extension blocks will be added to locally created bundle. Here are some of the limitations:
 
@@ -190,35 +190,31 @@ As of ion-core 4.1.3s, the `build-list.mk` file enables toggling which extension
 3. The file `./scripts/bpextension-ion-core.c` is manually derived from the ION open-source; it is modified to support the toggling of which extension blocks to include in locally created bundle.
 4. __This is the only ION source file modified by ion-core release using the legacy Makefile build (Method 2). This modification is manually performed by the ion-core development team right now. This file is re-evaluated for each ion-core release to make sure it is taylored for the most likely use case for users. The user of ion-core can further modify it to suite their deployment/testing needs.__
 
-## Man Page Installation
+### Man Page Installation (Method 2)
 
 Run:
 
 `sudo make man`
 
-## Creating ION configuration (".rc") files for a two-node setup
+### Building static and dynamic library (Method 2)
 
-`./scripts/host.sh <IP-this-host> <IP-the-other-host>`
+To build and install static linking library for ION, execute the following command:
 
-For example:
+```bash
+# build the static library
+make static
 
-`./scripts/host.sh 192.168.254.192 192.168.254.194`
+# build the dynamic library
+make shared
 
-Makes the config file `host192.rc` and places it inside the folder `host192_testdir`. You can run lauch ION by cd into the directory `cd host192_testdir` and run `ionstart -I host192.rc`.
+# install the libraries
+sudo make install-lib
 
-For the other host, run the same command with the order of IP addresses reversed.
+# uninstall the libraries
+sudo make uninstall-lib
+```
 
-The default protocol stack is BP/LTP but you can select the UDP or STCP CLAs if they are included in the `build-list.mk`.
-
-To generate configuration files using either UDP or the STCP CLA, add either `udp` or `stcp` as the third argument to `host.sh`. For example,  to generate configuration using STCP, run 
-
-`./scripts/host.sh 192.168.254.192 192.168.254.194` stcp
-
-Similar syntax goes for udp.
-
-To use other convergence layers such as UDP or STCP, you will need to modify the .rc files. See the ION documentation for more information. For example, you may consult the [ION Configuration Tutorials and Configuration Templates.](https://nasa-jpl.github.io/ION-DTN/Basic-Configuration-File-Tutorial/)
-
-## Post-installation Test
+### Post-installation Test (Method 2)
 
 After installation, you can run the following command to test the installation for each of the CLAs included in the build:
 
@@ -228,13 +224,13 @@ make test
 
 The result of the test will be captured in a file called `progress` under the `tests` directory.
 
-## Clean up process
+### Clean up process (Method 2)
 
 To remove executables and libraries installed in the host, run: `sudo make clean`
 To clean up the compilation artifacts, run: `make clean`
 To remove all complication artifacts, as well as all ION source and test files extracted from the ION open source code, run: `make distclean`
 
-## Automated Script to Build, Install, and Test Ion-core on Two Hosts
+### Automated Script to Build, Install, and Test Ion-core on Two Hosts (Method 2)
 
 To streamline the process, we have created two bash scripts that can automate the build, installation, and testing of ion-core.
 
@@ -299,7 +295,29 @@ To launch ION manually, you will need to enter into the directory and execute th
 
 Using the generated ION configuration folder, you can only launch one ION instance per host. To ability to run multiple ION instances in one host is utilized in automated regression testing (recall `make test`) and is a advanced topic described in the [ION online documentation](https://nasa-jpl.github.io/ION-DTN/).
 
-## Adjusting Pre-Allocation of Memory/Storage Space for ION
+# Creating ION configuration (".rc") files for a two-node setup
+
+`./scripts/host.sh <IP-this-host> <IP-the-other-host>`
+
+For example:
+
+`./scripts/host.sh 192.168.254.192 192.168.254.194`
+
+Makes the config file `host192.rc` and places it inside the folder `host192_testdir`. You can run lauch ION by cd into the directory `cd host192_testdir` and run `ionstart -I host192.rc`.
+
+For the other host, run the same command with the order of IP addresses reversed.
+
+The default protocol stack is BP/LTP but you can select the UDP or STCP CLAs if they are included in the `build-list.mk`.
+
+To generate configuration files using either UDP or the STCP CLA, add either `udp` or `stcp` as the third argument to `host.sh`. For example,  to generate configuration using STCP, run 
+
+`./scripts/host.sh 192.168.254.192 192.168.254.194` stcp
+
+Similar syntax goes for udp.
+
+To use other convergence layers such as UDP or STCP, you will need to modify the .rc files. See the ION documentation for more information. For example, you may consult the [ION Configuration Tutorials and Configuration Templates.](https://nasa-jpl.github.io/ION-DTN/Basic-Configuration-File-Tutorial/)
+
+# Adjusting Pre-Allocation of Memory/Storage Space for ION
 
 ION is designed to run within a pre-allocated memory space. If, while running ION, you encounter errors due to a lack of working memory or SDR heap space, you can increase the pre-allocated allocation by modifying the `host.ionconfig` file and then regenerate configuration files using the `./scripts/host.sh` command. The current default ION SDR and working memory allocation is as follows:
 
@@ -316,31 +334,13 @@ These values can be adjusted to control how much storage ION is allowed to consu
 
 Pleaser consult the `ionconfig` manual page for a detailed explanation of the full set of configuration parameters.
 
-## Tuning LTP Performance
+# Tuning LTP Performance
 
 Actual throughput of LTP link protocol depends significantly on the underlying radio communication or wired network speed and reliability, the host system's processing speed, the frequency of communication contact, the size of the bundles being sent, the round trip delay between the two hosts, and also on the LTP configuration. Check the `ltprc` manual page entry for details on how to adjust LTP settings to maximize throughput.
 
 In the ION source code's root directory, there is an Excel file named `ION-LTP-configuration_tool.xlsm` which can be used to generate recommended LTP settings for your configuration to maximize the throughput of your system.
 
-## Building static and dynamic library
-
-To build and install static linking library for ION, execute the following command:
-
-```bash
-# build the static library
-make static
-
-# build the dynamic library
-make shared
-
-# install the libraries
-sudo make install-lib
-
-# uninstall the libraries
-sudo make uninstall-lib
-```
-
-## Prototype: macOS Build
+# Prototype: macOS Build
 
 The process for building ion-core on macOS follows the same steps as the Linux build process. However, there are some differences that need to be addressed:
 
@@ -369,11 +369,11 @@ This set of minimum values are sufficient to pass the regression tests under the
   * Note: the `net.inet.udp.maxdgram` value is set to 655360 (640KB), 10 times larger than the maximum UDP datagram 65535 (64KB). For reasons not clear at this point, setting this much larger value actually enables smoother handling of UDP datagrams pass them through `localhost`.
 6. In the end, we recommend you experiment and adjust these kernel parameters to fit the specific needs of your application. These scripts provide the basic template on what paramters to check and adjust and how to implement them.
 
-## Prototype: FreeBSD Build Considerations
+# Prototype: FreeBSD Build Considerations
 
 1. The default make command for FreeBSD is `bmake.` ION require `gmake`. So you can either invoke `gmake` or create a symbolic link to `gmake` as `make`.
 
-## CMake Build System - Detailed Reference
+# CMake Build System - Detailed Reference
 
 CMake is now a fully supported build method for ion-core (as of version 4.1.4 beta 1). For basic build instructions, see the [Build & Install](#build--install) section. This section provides detailed CMake command reference and advanced usage.
 
@@ -385,7 +385,7 @@ CMake is now a fully supported build method for ion-core (as of version 4.1.4 be
 
 **Key Change:** Project configuration (like enabled programs, OS flags, and extension flags) is now primarily controlled by `build-list.cmake`. This file acts as the central configuration for your build.
 
-### CMake Build Commands Reference
+## CMake Build Commands Reference
 
 The following commands are used to manage the build process in a `build` directory:
 
@@ -453,11 +453,11 @@ The following commands are used to manage the build process in a `build` directo
 
     Shows detailed command execution (e.g., `make uninstall VERBOSE=1`).
 
-### Detailed Build, Test, and Cleanup Process
+## Detailed Build, Test, and Cleanup Process
 
 Follow these steps to manage your ION-Core project. The process assumes you're starting from the project root directory and working with the CMake build system.
 
-#### Prerequisites
+### Prerequisites
 
 * Verify required tools: CMake (3.10+), make, gcc, pod2man, gzip.
 
@@ -475,7 +475,7 @@ Follow these steps to manage your ION-Core project. The process assumes you're s
     cd build
     ```
 
-#### 1. Build the Project
+### 1. Build the Project
 
 **Purpose**: Compile libraries, executables, and prepare for man page generation.
 
@@ -514,7 +514,7 @@ Follow these steps to manage your ION-Core project. The process assumes you're s
         ls ../man/*.1.gz
         ```
 
-#### 2. Install the Project
+### 2. Install the Project
 
 **Purpose**: Install built components to the system's `/usr/local` directory.
 
@@ -533,7 +533,7 @@ Follow these steps to manage your ION-Core project. The process assumes you're s
         ls /usr/local/share/man/man1/ionadmin.1.gz
         ```
 
-#### 3. Test the Project
+### 3. Test the Project
 
 **Purpose**: Validate the built executables using test suites configured in `build-list.cmake`.
 
@@ -546,7 +546,7 @@ Follow these steps to manage your ION-Core project. The process assumes you're s
     * This command uses the test mapping defined in `build-list.cmake` to execute the relevant `runtests` script with the specified test suites.
     * Verify test results by examining the output in your terminal.
 
-#### 4. Uninstall the Project
+### 4. Uninstall the Project
 
 **Purpose**: Remove installed files from `/usr/local`.
 
@@ -559,7 +559,7 @@ Follow these steps to manage your ION-Core project. The process assumes you're s
     * This removes libraries, executables, scripts, and man pages installed previously.
     * Verify by checking that the files are no longer present in the installation paths.
 
-#### 5. Clean Up Build Artifacts
+### 5. Clean Up Build Artifacts
 
 **Purpose**: Remove intermediate build artifacts from the project's build directories.
 
@@ -571,7 +571,7 @@ Follow these steps to manage your ION-Core project. The process assumes you're s
 
     * This clears build artifacts from `lib`, `bin`, and `man` directories.
 
-#### 6. Perform Full Cleanup
+### 6. Perform Full Cleanup
 
 **Purpose**: Remove all extracted source files, headers, and all generated files to return the project to a pristine state.
 
@@ -583,7 +583,7 @@ Follow these steps to manage your ION-Core project. The process assumes you're s
 
     * This removes all build-related files and symbolic links.
 
-#### 7. Remove Build Directory
+### 7. Remove Build Directory
 
 **Purpose**: Delete the `build` directory.
 
@@ -594,7 +594,7 @@ Follow these steps to manage your ION-Core project. The process assumes you're s
     rm -rf build
     ```
 
-#### 8. Verify Project State
+### 8. Verify Project State
 
 **Purpose**: Confirm the project directory is clean and ready for a fresh build or archiving.
 
@@ -606,7 +606,7 @@ Follow these steps to manage your ION-Core project. The process assumes you're s
 
     * You should mainly see source control files, original build scripts, and empty directories marked with `.gitkeep`.
 
-### Additional CMake Notes
+## Additional CMake Notes
 
 * **Permissions**: Use `sudo` for `make install` and `make uninstall`. User permissions suffice for other commands.
 
@@ -622,11 +622,11 @@ Follow these steps to manage your ION-Core project. The process assumes you're s
 
 * **Rebuilding after `distclean`**: After running `make distclean`, the ION source files may need to be re-initialized depending on your setup (submodule or custom source directory).
 
-## Contributing Code
+# Contributing Code
 
 Please see the file `developer_notes.txt` for more information.
 
-## WSL2 Networking Issue
+# WSL2 Networking Issue
 
 WLS2 is known to have issues with VPN connection. One approach is to downgrade to WSL1:
 
@@ -642,9 +642,9 @@ Alternative approach is to use the WSL Vpnkit to provide VPN connection:
 
 https://github.com/sakai135/wsl-vpnkit
 
-## Release Notes
+# Release Notes
 
-#### Latest Release Tag: `4.1.3s`
+## Latest Release Tag: `4.1.3s`
 
 7/3/2025
 Update codebase to ION open source verion 4.1.3s - BPSec prototype is still considered experimental, therefore not included in this release. Following updates were made:
@@ -653,7 +653,7 @@ Update codebase to ION open source verion 4.1.3s - BPSec prototype is still cons
   * Fixed bug for `ionadmin` to display correct ION version number instead of "unknown"
   * Added `bpcp` related regression tests for LTP and STCP convergence layers
 
-#### Tag: `4.1.3s-a.1`
+## Tag: `4.1.3s-a.1`
 
 1/5/2025
 * First alpha release for 4.1.3s
@@ -661,23 +661,23 @@ Update codebase to ION open source verion 4.1.3s - BPSec prototype is still cons
 * Switch to using symbolic link (instead of copying source code file) to preserve original Git history and support upstream code push to Open Source
 * Improved OS support for compilation 
 
-#### Tag: `4.1.3`
+## Tag: `4.1.3`
 
 9/24/2024
 * Update codebase to ION open source verion 4.1.3
 * Add regression test for each available CLA
 * Add target to build static and shared libraries
 
-#### Tag: `4.1.2b`
+## Tag: `4.1.2b`
 
 Added ability to select/exclude certain features from build
 
-#### Tag: `4.1.2a`
+## Tag: `4.1.2a`
 
 2/01/2024
 * Added STCP CLA to ver 4.1.2
 
-#### Tag: `4.1.2`
+## Tag: `4.1.2`
 
 11/30/2023
 * Based on ION Open Source 4.1.2

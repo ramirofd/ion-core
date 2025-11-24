@@ -19,10 +19,11 @@ POD2MAN=pod2man
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MAN_OUTPUT_DIR="${SCRIPT_DIR}/../man"
 
-# Define pod file search paths (for ION-DTN submodule structure)
+# Define pod file search paths (for both ION-DTN submodule and extract.sh methods)
 POD_SEARCH_PATHS=(
-  "${ION_SRC}/man"
-  "${ION_SRC}/ici/doc/pod1"
+  "${ION_SRC}"                    # For extract.sh method (flat directory)
+  "${ION_SRC}/man"                # Alternative flat directory location
+  "${ION_SRC}/ici/doc/pod1"       # For submodule method
   "${ION_SRC}/bpv7/doc/pod1"
   "${ION_SRC}/ltp/doc/pod1"
   "${ION_SRC}/cfdp/doc/pod1"
