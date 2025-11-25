@@ -43,7 +43,8 @@ jobs:
             sudo make uninstall
             make distclean
             rm -rf build
-            mkdir build && cd build
+            mkdir build
+            cd build
             cmake ..
             make
             make man
@@ -54,7 +55,7 @@ jobs:
       - name: Display Progress
         if: ${{ always() }}  # Display progress even if tests were interrupted
         run: | 
-          cat ./tests/progress
+          cat ./external/ION-DTN/tests/progress
 
       - name: Upload full build and test log
         if: ${{ always() }}  # Capture log even if the previous step fails
@@ -68,4 +69,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-progress-cmake${{ env.TIMESTAMP }}
-          path: ./tests/progress  # Upload the 'progress' file for later review
+          path: ./external/ION-DTN/tests/progress  # Upload the 'progress' file for later review
