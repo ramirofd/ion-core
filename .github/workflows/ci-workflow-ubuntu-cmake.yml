@@ -33,7 +33,10 @@ jobs:
 
       - name: Setup ION-DTN submodule
         run: |
-          ./scripts/setup-submodule.sh
+          {
+            ./scripts/clean-submodule.sh
+            ./scripts/setup-submodule.sh
+          } 
 
       - name: Run build and tests, capture stdout
         run: | # Redirect stdout and stderr to a log
