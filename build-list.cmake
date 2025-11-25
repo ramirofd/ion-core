@@ -9,12 +9,12 @@
 set(ION_DTN_VERSION_FILE "${CMAKE_SOURCE_DIR}/ION_DTN_VERSION")
 if(EXISTS "${ION_DTN_VERSION_FILE}")
   file(STRINGS "${ION_DTN_VERSION_FILE}" ION_DTN_TAG_LINES)
-  foreach(line ${ION_DTN_TAG_LINES})
-    # Skip comments and empty lines
-    string(REGEX MATCH "^[^#]*" line_content "${line}")
-    string(STRIP "${line_content}" line_content)
-    if(NOT "${line_content}" STREQUAL "")
-      set(ION_DTN_TAG "${line_content}")
+  foreach(line IN LISTS ION_DTN_TAG_LINES)
+    # Strip whitespace first
+    string(STRIP "${line}" line_stripped)
+    # Skip empty lines and comment lines
+    if(NOT "${line_stripped}" STREQUAL "" AND NOT "${line_stripped}" MATCHES "^#")
+      set(ION_DTN_TAG "${line_stripped}")
       break()
     endif()
   endforeach()
