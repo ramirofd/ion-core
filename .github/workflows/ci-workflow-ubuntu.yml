@@ -20,7 +20,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          submodules: 'recursive'  # Initialize and checkout submodules
+          submodules: true  # Initialize direct submodules only (non-recursive)
 
       - name: Set up dependencies
         run: |
