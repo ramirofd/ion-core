@@ -50,12 +50,19 @@ jobs:
             make man
             sudo make install
             make test
-          } 2>&1 | tee build-and-test.log
+          } 2>&1 | tee $GITHUB_WORKSPACE/build-and-test.log
 
       - name: Display Progress
         if: ${{ always() }}  # Display progress even if tests were interrupted
-        run: | 
-          cat ./external/ION-DTN/tests/progress
+        run: |
+          if [ -f ./external/ION-DTN/tests/progress ]; then
+            echo "=== Test Progress ==="
+            cat ./external/ION-DTN/tests/progress
+          else
+            echo "Progress file not found at ./external/ION-DTN/tests/progress"
+            echo "Checking if tests directory exists:"
+            ls -la ./external/ION-DTN/tests/ || echo "Tests directory not found"
+          fi
 
       - name: Upload full build and test log
         if: ${{ always() }}  # Capture log even if the previous step fails
@@ -70,3 +77,4 @@ jobs:
         with:
           name: test-progress-cmake${{ env.TIMESTAMP }}
           path: ./external/ION-DTN/tests/progress  # Upload the 'progress' file for later review
+          if-no-files-found: warn  # Don't fail if progress file doesn't exist
