@@ -39,9 +39,6 @@ jobs:
         run: | # Redirect stdout and stderr to a log
           {
             echo "Starting build and tests at $(date)"
-            make clean
-            sudo make uninstall
-            make distclean
             rm -rf build
             mkdir build
             cd build
