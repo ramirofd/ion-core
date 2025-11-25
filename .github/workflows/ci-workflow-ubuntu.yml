@@ -41,12 +41,12 @@ jobs:
             echo "Starting build and tests at $(date)"
             make clean
             sudo make uninstall
-            make distclean
             make
             make static
             make shared
             sudo make install
             sudo make install-lib
+            sudo ldconfig
             sudo make man
             make test
           } 2>&1 | tee build-and-test.log

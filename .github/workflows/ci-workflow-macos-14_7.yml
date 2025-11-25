@@ -41,7 +41,6 @@ jobs:
             echo "Starting build and tests at $(date)"
             make clean
             sudo make uninstall
-            make distclean
             make
             make static
             make shared
