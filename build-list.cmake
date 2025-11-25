@@ -1,12 +1,43 @@
 #
-# Build list for ION-core 4.1.4-b.1 (CMake equivalent)
+# Build list for ION-Core - CMake
 #
+
+######################
+# ION-DTN Version
+######################
+# Read ION-DTN version from ION_DTN_VERSION file
+set(ION_DTN_VERSION_FILE "${CMAKE_SOURCE_DIR}/ION_DTN_VERSION")
+if(EXISTS "${ION_DTN_VERSION_FILE}")
+  file(STRINGS "${ION_DTN_VERSION_FILE}" ION_DTN_TAG_LINES)
+  foreach(line ${ION_DTN_TAG_LINES})
+    # Skip comments and empty lines
+    string(REGEX MATCH "^[^#]*" line_content "${line}")
+    string(STRIP "${line_content}" line_content)
+    if(NOT "${line_content}" STREQUAL "")
+      set(ION_DTN_TAG "${line_content}")
+      break()
+    endif()
+  endforeach()
+  message(STATUS "ION-DTN Tag: ${ION_DTN_TAG}")
+else()
+  message(WARNING "ION_DTN_VERSION file not found at ${ION_DTN_VERSION_FILE}")
+  set(ION_DTN_TAG "unknown")
+endif()
 
 ######################
 # Set version number
 ######################
-# Define VER directly as a CMake variable, equivalent to -DVNAME in Makefile
-set(VER "-DVNAME=ION-CORE-4.1.4-b.1")
+# Derive ION-CORE version from ION-DTN tag
+# Extract version number from tag (e.g., "ion-open-source-4.1.3s" -> "4.1.3s")
+if(NOT "${ION_DTN_TAG}" STREQUAL "unknown")
+  string(REGEX REPLACE "^ion-open-source-" "" ION_VERSION "${ION_DTN_TAG}")
+  set(VER "-DVNAME=ION-CORE-${ION_VERSION}")
+  message(STATUS "ION-CORE Version: ${ION_VERSION}")
+else()
+  # Fallback if ION_DTN_VERSION file is missing
+  set(VER "-DVNAME=ION-CORE-unknown")
+  message(WARNING "Using fallback version name")
+endif()
 
 ######################
 # ION-CORE Build Flag

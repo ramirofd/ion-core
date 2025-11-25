@@ -683,6 +683,9 @@ endforeach()
 # Custom target to build all man pages
 add_custom_target(man DEPENDS ${MAN_PAGES})
 
+# Custom target to ensure man pages are built before installation
+add_custom_target(man_for_install DEPENDS ${MAN_PAGES})
+
 # Install ICI libraries
 install(TARGETS icicore_static
   ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
@@ -724,10 +727,14 @@ install(PROGRAMS
   ${BIN_DIR}/ionprocesslist.sh
   DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
 )
+# Install man pages (build them first if they don't exist)
 install(FILES ${MAN_PAGES}
   DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1
   PERMISSIONS OWNER_READ GROUP_READ WORLD_READ
 )
+
+# Add a custom install script that ensures man pages are built before installation
+install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target man_for_install)")
 
 # Clean_all target: remove all build artifacts (but keep .gitkeep files)
 add_custom_target(clean_all

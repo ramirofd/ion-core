@@ -71,9 +71,26 @@ if [[ ! -d "$ROOT_DIR" ]]; then
   exit 1
 fi
 
-# Set the default source
-ION_VER="4.1.4-b.1"
-ION_SRC_ZIP="https://github.com/nasa-jpl/ION-DTN/archive/refs/tags/ion-open-source-$ION_VER.tar.gz"
+# Read ION-DTN version from ION_DTN_VERSION file
+VERSION_FILE="$ROOT_DIR/ION_DTN_VERSION"
+if [[ ! -f "$VERSION_FILE" ]]; then
+  echo "Error: ION_DTN_VERSION file not found at $VERSION_FILE"
+  exit 1
+fi
+
+# Read the tag, skipping comments and empty lines
+ION_DTN_TAG=$(grep -v '^#' "$VERSION_FILE" | grep -v '^[[:space:]]*$' | head -n1 | tr -d '[:space:]')
+if [[ -z "$ION_DTN_TAG" ]]; then
+  echo "Error: No valid tag found in $VERSION_FILE"
+  exit 1
+fi
+
+# Extract version number from tag (e.g., "ion-open-source-4.1.3s" -> "4.1.3s")
+ION_VER=$(echo "$ION_DTN_TAG" | sed -E 's/^ion-open-source-//')
+echo "Using ION-DTN version: $ION_VER"
+
+# Set the source URL using the full tag name
+ION_SRC_ZIP="https://github.com/nasa-jpl/ION-DTN/archive/refs/tags/$ION_DTN_TAG.tar.gz"
 
 # Check if a source path was provided
 if [[ -z "$1" ]]; then

@@ -75,12 +75,12 @@ sudo apt install make gcc cmake git
 
 **Build steps:**
 ```bash
-# Clone ion-core with submodules
-git clone --recursive https://github.com/nasa-jpl/ion-core-dev.git
+# Clone ion-core repository
+git clone https://github.com/nasa-jpl/ion-core-dev.git
 cd ion-core-dev
 
-# If you already cloned without --recursive, initialize the submodule:
-git submodule update --init --recursive
+# Initialize and setup the ION-DTN submodule
+./scripts/setup-submodule.sh
 
 # Create build directory and configure
 mkdir -p build
@@ -92,6 +92,8 @@ make
 sudo make install
 sudo ldconfig  # Linux only
 ```
+
+**Note:** The `setup-submodule.sh` script initializes the ION-DTN submodule non-recursively (avoiding private nested submodules) and configures sparse-checkout to only include required directories. The ION-DTN version is automatically read from the `ION_DTN_VERSION` file.
 
 **Using a custom ION source directory:**
 
@@ -468,6 +470,22 @@ Follow these steps to manage your ION-Core project. The process assumes you're s
     gzip --version
     ```
 
+* **Setup ION-DTN submodule** (if not already done):
+
+    ```bash
+    ./scripts/setup-submodule.sh
+    ```
+
+    This initializes the ION-DTN submodule, checks out the correct version from `ION_DTN_VERSION`, and configures sparse-checkout.
+
+* **Clean submodule** (if you need to reinitialize):
+
+    ```bash
+    ./scripts/clean-submodule.sh
+    ```
+
+    Use this to completely remove and clean the submodule state. After cleaning, run `setup-submodule.sh` again to reinitialize.
+
 * Create a `build` directory (if not already present) and navigate into it:
 
     ```bash
@@ -610,8 +628,19 @@ Follow these steps to manage your ION-Core project. The process assumes you're s
 
 * **Permissions**: Use `sudo` for `make install` and `make uninstall`. User permissions suffice for other commands.
 
+* **Version Management**: ION-Core now uses a centralized version file (`ION_DTN_VERSION`) that controls which ION-DTN release to use:
+    * Edit `ION_DTN_VERSION` to change the ION-DTN version (e.g., `ion-open-source-4.1.4-b.1`)
+    * The ION-CORE version is automatically derived (e.g., `ION-CORE-4.1.4-b.1`)
+    * All build systems (Makefile, CMake) and scripts read from this file
+    * To update ION-DTN version:
+        1. Edit `ION_DTN_VERSION` with the new tag
+        2. Run `./scripts/clean-submodule.sh` to clean the existing submodule
+        3. Run `./scripts/setup-submodule.sh` to checkout the new version
+        4. Rebuild with `cmake .. && make`
+
 * **Configuration via `build-list.cmake`**: This file now defines:
-    * The project version (`VER`)
+    * The ION-DTN tag (read from `ION_DTN_VERSION`)
+    * The project version (`VER`) derived from the ION-DTN tag
     * Platform-specific compiler flags (`OS_FLAGS`)
     * Extension flags (`EXT_FLAGS`)
     * The list of all programs (`PROGRAMS`) to be built and installed
@@ -621,6 +650,12 @@ Follow these steps to manage your ION-Core project. The process assumes you're s
 * **Custom Install Prefix**: If you specify a custom installation prefix (e.g., `cmake -DCMAKE_INSTALL_PREFIX=/custom/path ..`), remember to adjust your verification paths accordingly.
 
 * **Rebuilding after `distclean`**: After running `make distclean`, the ION source files may need to be re-initialized depending on your setup (submodule or custom source directory).
+
+* **Submodule Management Scripts**:
+    * `./scripts/setup-submodule.sh` - Initialize and configure the ION-DTN submodule
+    * `./scripts/clean-submodule.sh` - Clean and deinitialize the submodule for fresh setup
+    * Both scripts read the ION-DTN version from `ION_DTN_VERSION`
+    * Use `--help` flag for detailed usage information
 
 # Contributing Code
 

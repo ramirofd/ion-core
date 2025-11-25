@@ -15,8 +15,18 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 ION_DTN_PATH="$REPO_ROOT/external/ION-DTN"
 
-# Expected ION-DTN tag/commit
-EXPECTED_TAG="ion-open-source-4.1.3s"
+# Read expected ION-DTN tag/commit from version file
+VERSION_FILE="$REPO_ROOT/ION_DTN_VERSION"
+if [ ! -f "$VERSION_FILE" ]; then
+    print_error "ION_DTN_VERSION file not found at $VERSION_FILE"
+    exit 1
+fi
+# Read the tag, skipping comments and empty lines
+EXPECTED_TAG=$(grep -v '^#' "$VERSION_FILE" | grep -v '^[[:space:]]*$' | head -n1 | tr -d '[:space:]')
+if [ -z "$EXPECTED_TAG" ]; then
+    print_error "No valid tag found in $VERSION_FILE"
+    exit 1
+fi
 
 # Colors for output
 RED='\033[0;31m'
@@ -101,12 +111,17 @@ initialize_submodule() {
     cd "$REPO_ROOT"
 
     if [ ! -d "$ION_DTN_PATH/.git" ]; then
-        print_info "Submodule not initialized. Running: git submodule update --init --recursive"
-        if ! git submodule update --init --recursive; then
+        # Sync submodule configuration first (in case it was cleaned)
+        print_info "Syncing submodule configuration..."
+        git submodule sync 2>/dev/null || true
+
+        print_info "Submodule not initialized. Running: git submodule update --init (non-recursive)"
+        if ! git submodule update --init external/ION-DTN; then
             print_error "Failed to initialize submodule"
+            print_info "Try running: git submodule init && git submodule update external/ION-DTN"
             exit 1
         fi
-        print_success "✓ Submodule initialized"
+        print_success "✓ Submodule initialized (without nested submodules)"
     else
         print_success "✓ Submodule already initialized"
     fi
@@ -199,8 +214,8 @@ verify_submodule_contents() {
     fi
 
     # Check for key source files
-    if [ ! -f "$ION_DTN_PATH/ici/ion.c" ]; then
-        print_error "Critical file missing: ici/ion.c"
+    if [ ! -f "$ION_DTN_PATH/ici/library/ion.c" ]; then
+        print_error "Critical file missing: ici/library/ion.c"
         exit 1
     fi
 

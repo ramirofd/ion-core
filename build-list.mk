@@ -1,13 +1,24 @@
 SHELL := /usr/bin/env bash
 #
-# Build list for ION-core 4.1.4-b.1
+# Build list for ION-core 
 #
 BUILD_LIST_INCLUDED = YES
 
 ######################
+# ION-DTN Version
+######################
+# Read ION-DTN version from ION_DTN_VERSION file
+ION_DTN_VERSION_FILE := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))/ION_DTN_VERSION
+ION_DTN_TAG := $(shell grep -v '^\#' $(ION_DTN_VERSION_FILE) | grep -v '^[[:space:]]*$$' | head -n1 | tr -d '[:space:]')
+$(info ION-DTN Tag: $(ION_DTN_TAG))
+
+######################
 # Set version number
 ######################
-VER := -DVNAME=ION-CORE-4.1.4-b.1
+# Derive ION-CORE version from ION-DTN tag
+# Extract version number from tag (e.g., "ion-open-source-4.1.3s" -> "4.1.3s")
+ION_VERSION := $(shell echo $(ION_DTN_TAG) | sed -E 's/^ion-open-source-//')
+VER := -DVNAME=ION-CORE-$(ION_VERSION)
 
 ######################
 # ION-CORE Build Flag

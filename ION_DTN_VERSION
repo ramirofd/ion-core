@@ -1,0 +1,12 @@
+# ION-DTN Submodule Version
+# This file specifies the ION-DTN git tag/commit to be used by ion-core-dev
+#
+# Usage:
+#   - Build scripts (Makefile, CMake) read this to verify the submodule version
+#   - setup-submodule.sh reads this to checkout the correct tag
+#   - CI/CD workflows can reference this for validation
+#
+# Format: One tag per line (no comments after tag)
+# Example: ion-open-source-4.1.3s
+
+ion-open-source-4.1.4-b.1
