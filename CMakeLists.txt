@@ -633,16 +633,6 @@ foreach(SCRIPT IN LISTS ION_SCRIPTS)
   )
 endforeach()
 
-# Build ION-Core stub programs (for compatibility with ION-DTN test scripts)
-# dtpcadmin stub - DTPC is not included in ION-Core
-if("dtpcadmin" IN_LIST ALL_PROGRAMS)
-  add_executable(dtpcadmin ${CMAKE_SOURCE_DIR}/utils/dtpcadmin.c)
-  target_include_directories(dtpcadmin PRIVATE ${INC_DIR})
-  set_target_properties(dtpcadmin PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR}
-  )
-endif()
-
 install(TARGETS ${ALL_PROGRAMS}
   RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
 )
@@ -709,11 +699,8 @@ foreach(PROG IN LISTS MAN_PROGRAMS)
   )
 endforeach()
 
-# Custom target to build all man pages
-add_custom_target(man DEPENDS ${MAN_PAGES})
-
-# Custom target to ensure man pages are built before installation
-add_custom_target(man_for_install DEPENDS ${MAN_PAGES})
+# Custom target to build all man pages as part of the default build
+add_custom_target(man ALL DEPENDS ${MAN_PAGES})
 
 # Install ICI libraries
 install(TARGETS icicore_static
@@ -747,6 +734,33 @@ install(TARGETS ltpcore_shared
   LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
 )
 
+# Install header files
+install(DIRECTORY ${ION_DTN_DIR}/ici/include/
+  DESTINATION ${CMAKE_INSTALL_PREFIX}/include/ion-core
+  FILES_MATCHING PATTERN "*.h"
+)
+install(DIRECTORY ${ION_DTN_DIR}/bpv7/include/
+  DESTINATION ${CMAKE_INSTALL_PREFIX}/include/ion-core
+  FILES_MATCHING PATTERN "*.h"
+)
+install(DIRECTORY ${ION_DTN_DIR}/ltp/include/
+  DESTINATION ${CMAKE_INSTALL_PREFIX}/include/ion-core
+  FILES_MATCHING PATTERN "*.h"
+)
+install(DIRECTORY ${ION_DTN_DIR}/cfdp/include/
+  DESTINATION ${CMAKE_INSTALL_PREFIX}/include/ion-core
+  FILES_MATCHING PATTERN "*.h"
+)
+
+# Configure and install pkg-config file
+configure_file(
+  ${CMAKE_SOURCE_DIR}/ion-core.pc.in
+  ${CMAKE_BINARY_DIR}/ion-core.pc
+  @ONLY
+)
+install(FILES ${CMAKE_BINARY_DIR}/ion-core.pc
+  DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/pkgconfig
+)
 
 install(PROGRAMS
   ${BIN_DIR}/ionstart
@@ -756,14 +770,11 @@ install(PROGRAMS
   ${BIN_DIR}/ionprocesslist.sh
   DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
 )
-# Install man pages (build them first if they don't exist)
+# Install man pages
 install(FILES ${MAN_PAGES}
   DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1
   PERMISSIONS OWNER_READ GROUP_READ WORLD_READ
 )
-
-# Add a custom install script that ensures man pages are built before installation
-install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target man_for_install)")
 
 # Clean_all target: remove all build artifacts (but keep .gitkeep files)
 add_custom_target(clean_all
@@ -821,7 +832,11 @@ add_custom_target(uninstall
     ${CMAKE_INSTALL_PREFIX}/bin/ionprocesslist.sh
   COMMAND ${CMAKE_COMMAND} -E remove -f
     ${MAN_PAGES_FILES}
-  COMMENT "Uninstalling ION-Core: libraries, binaries, scripts, man pages"
+  COMMAND ${CMAKE_COMMAND} -E remove -f
+    ${CMAKE_INSTALL_PREFIX}/lib/pkgconfig/ion-core.pc
+  COMMAND ${CMAKE_COMMAND} -E remove_directory
+    ${CMAKE_INSTALL_PREFIX}/include/ion-core
+  COMMENT "Uninstalling ION-Core: libraries, binaries, scripts, man pages, headers, pkg-config"
 )
 
 # --- Test Target ---

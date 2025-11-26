@@ -1,0 +1,12 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+Name: ION-Core
+Description: ION Interplanetary Overlay Network - Core Libraries (ICI, BP, LTP, CFDP)
+Version: @PROJECT_VERSION@
+URL: https://github.com/nasa-jpl/ion-core
+Requires:
+Libs: -L${libdir} -lcfdpcore -lltpcore -lbpcore -licicore -lpthread -lm
+Cflags: -I${includedir}/ion-core
