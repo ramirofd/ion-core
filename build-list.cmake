@@ -141,6 +141,9 @@ set(PROGRAMS
   bping
   bpstats
   bptrace
+
+  # ION-Core stubs (for compatibility with ION-DTN test scripts)
+  dtpcadmin
 )
 
 ##################

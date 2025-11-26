@@ -1,5 +1,24 @@
 cmake_minimum_required(VERSION 3.10)
-project(ION-Core-ICI VERSION 4.1.3 LANGUAGES C)
+
+# Read version from ION_DTN_VERSION file
+set(ION_DTN_VERSION_FILE "${CMAKE_SOURCE_DIR}/ION_DTN_VERSION")
+if(EXISTS "${ION_DTN_VERSION_FILE}")
+  file(STRINGS "${ION_DTN_VERSION_FILE}" ION_DTN_TAG_LINES)
+  foreach(line IN LISTS ION_DTN_TAG_LINES)
+    string(STRIP "${line}" line_stripped)
+    if(NOT "${line_stripped}" STREQUAL "" AND NOT "${line_stripped}" MATCHES "^#")
+      set(ION_DTN_TAG "${line_stripped}")
+      break()
+    endif()
+  endforeach()
+  # Extract version number (e.g., "ion-open-source-4.1.4-b.2" -> "4.1.4")
+  string(REGEX REPLACE "^ion-open-source-([0-9]+\\.[0-9]+\\.[0-9]+).*" "\\1" PROJECT_VERSION "${ION_DTN_TAG}")
+else()
+  set(PROJECT_VERSION "4.1.4")
+  message(WARNING "ION_DTN_VERSION file not found, using default version ${PROJECT_VERSION}")
+endif()
+
+project(ION-Core-ICI VERSION ${PROJECT_VERSION} LANGUAGES C)
 
 # Debug: Print CMAKE_SOURCE_DIR
 message("CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
@@ -613,6 +632,16 @@ foreach(SCRIPT IN LISTS ION_SCRIPTS)
     COPYONLY
   )
 endforeach()
+
+# Build ION-Core stub programs (for compatibility with ION-DTN test scripts)
+# dtpcadmin stub - DTPC is not included in ION-Core
+if("dtpcadmin" IN_LIST ALL_PROGRAMS)
+  add_executable(dtpcadmin ${CMAKE_SOURCE_DIR}/utils/dtpcadmin.c)
+  target_include_directories(dtpcadmin PRIVATE ${INC_DIR})
+  set_target_properties(dtpcadmin PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR}
+  )
+endif()
 
 install(TARGETS ${ALL_PROGRAMS}
   RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin

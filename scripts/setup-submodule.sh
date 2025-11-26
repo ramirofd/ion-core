@@ -67,7 +67,7 @@ DESCRIPTION:
     1. Checks if git submodules are configured
     2. Initializes the ION-DTN submodule if needed
     3. Checks out the expected tag ($EXPECTED_TAG)
-    4. Configures sparse-checkout to reduce repository size
+    4. Ensures full repository is checked out (disables sparse-checkout)
     5. Verifies the submodule is ready for building
 
 EXAMPLES:
@@ -152,53 +152,20 @@ checkout_expected_tag() {
     fi
 }
 
-configure_sparse_checkout() {
-    print_info "Configuring sparse-checkout..."
-
-    cd "$ION_DTN_PATH"
-
-    # Check if sparse-checkout is already configured
-    if git sparse-checkout list >/dev/null 2>&1; then
-        current_patterns=$(git sparse-checkout list | tr '\n' ' ')
-        print_info "Current sparse-checkout patterns: $current_patterns"
-
-        # Check if our required directories are included
-        required_dirs=("ici" "bpv7" "ltp" "cfdp" "restart" "tests")
-        all_present=true
-        for dir in "${required_dirs[@]}"; do
-            if ! git sparse-checkout list | grep -q "^$dir$"; then
-                all_present=false
-                break
-            fi
-        done
-
-        if [ "$all_present" = true ]; then
-            print_success "✓ Sparse-checkout already configured correctly"
-            return 0
-        fi
-    fi
-
-    print_info "Setting up sparse-checkout patterns..."
-
-    # Initialize sparse-checkout in cone mode
-    if ! git sparse-checkout init --cone 2>/dev/null; then
-        print_warning "Sparse-checkout init returned non-zero, continuing..."
-    fi
-
-    # Set sparse-checkout paths
-    if ! git sparse-checkout set ici/ bpv7/ ltp/ cfdp/ restart/ tests/; then
-        print_error "Failed to configure sparse-checkout"
-        exit 1
-    fi
-
-    print_success "✓ Sparse-checkout configured"
-    print_info "  Checked out directories: ici, bpv7, ltp, cfdp, restart, tests"
-}
+# configure_sparse_checkout() - NO LONGER USED
+# We now check out the full repository instead of using sparse-checkout
+# This function is kept commented for reference if sparse-checkout is needed in the future
+#
+# configure_sparse_checkout() {
+#     print_info "Configuring sparse-checkout..."
+#     cd "$ION_DTN_PATH"
+#     # ... (function body removed for clarity)
+# }
 
 verify_submodule_contents() {
     print_info "Verifying submodule contents..."
 
-    required_dirs=("ici" "bpv7" "ltp" "cfdp" "restart" "tests")
+    required_dirs=("ici" "bpv7" "ltp" "cfdp" "restart" "tests" "configs")
     missing_dirs=()
 
     for dir in "${required_dirs[@]}"; do
@@ -221,6 +188,17 @@ verify_submodule_contents() {
 
     if [ ! -f "$ION_DTN_PATH/bpv7/library/libbp.c" ]; then
         print_error "Critical file missing: bpv7/library/libbp.c"
+        exit 1
+    fi
+
+    # Check for essential scripts needed for testing
+    if [ ! -f "$ION_DTN_PATH/system_up" ]; then
+        print_error "Critical script missing: system_up"
+        exit 1
+    fi
+
+    if [ ! -f "$ION_DTN_PATH/ionstart" ]; then
+        print_error "Critical script missing: ionstart"
         exit 1
     fi
 
@@ -309,8 +287,15 @@ main() {
     fi
     checkout_expected_tag
 
-    # Step 5: Configure sparse-checkout
-    configure_sparse_checkout
+    # Step 5: Disable sparse-checkout (use full repository)
+    print_info "Disabling sparse-checkout to get full repository..."
+    cd "$ION_DTN_PATH"
+    if git sparse-checkout list >/dev/null 2>&1; then
+        git sparse-checkout disable
+        print_success "✓ Sparse-checkout disabled, using full repository"
+    else
+        print_success "✓ Full repository already checked out"
+    fi
 
     # Step 6: Verify contents
     verify_submodule_contents
