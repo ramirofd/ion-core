@@ -832,7 +832,10 @@ endforeach()
 
 # Pass the CMake list directly to the COMMAND, so each element is a separate argument.
 add_custom_target(test
-  COMMAND
-    ${CMAKE_COMMAND} -E chdir ${TESTS_DIR} ./runtests ${ALL_TESTS_TO_RUN}
+  COMMAND ${CMAKE_COMMAND} -E echo "TESTS_DIR: ${TESTS_DIR}"
+  COMMAND ${CMAKE_COMMAND} -E echo "Checking if TESTS_DIR exists..."
+  COMMAND test -d ${TESTS_DIR} || (echo "ERROR: TESTS_DIR does not exist: ${TESTS_DIR}" && exit 1)
+  COMMAND ${CMAKE_COMMAND} -E echo "Changing to TESTS_DIR and running tests..."
+  COMMAND ${CMAKE_COMMAND} -E chdir ${TESTS_DIR} ./runtests ${ALL_TESTS_TO_RUN}
   COMMENT "Running selected tests based on enabled programs (mimics Makefile 'test' target)."
 )
