@@ -151,6 +151,7 @@ install:
 	cp -v $(OUT_BIN)/ionstart.awk $(INSTALL_PATH)/bin
 	cp -v $(OUT_BIN)/ionstop $(INSTALL_PATH)/bin
 	cp -v $(OUT_BIN)/killm $(INSTALL_PATH)/bin
+	cp -v $(OUT_BIN)/ionprocesslist.sh $(INSTALL_PATH)/bin
 
 install-lib:
 	$(info Make "install-lib" target...)
@@ -202,6 +203,11 @@ uninstall:
 	    rm -f $(INSTALL_PATH)/bin/$$prog; \
 		rm -f $(INSTALL_PATH)/share/man/man1/$$prog*; \
 	done
+	rm -f $(INSTALL_PATH)/bin/ionstart
+	rm -f $(INSTALL_PATH)/bin/ionstart.awk
+	rm -f $(INSTALL_PATH)/bin/ionstop
+	rm -f $(INSTALL_PATH)/bin/killm
+	rm -f $(INSTALL_PATH)/bin/ionprocesslist.sh
 
 uninstall-lib:
 	$(info Make "uninstall-lib" target...)
