@@ -219,6 +219,8 @@ set(LTP_PROGRAMS
 #
 set(BP_SOURCES
   ${SRC_DIR}/bpv7/library/ext/bae/bae.c
+  ${SRC_DIR}/bpv7/library/ext/cteb/cteb.c
+  ${SRC_DIR}/bpv7/library/ext/creb/creb.c
   ${SRC_DIR}/bpv7/bpsec/instr/bpsec_instr.c
   ${SRC_DIR}/bpv7/bpsec/sci/bcb_aes_gcm_sc.c
   ${SRC_DIR}/bpv7/bpsec/policy/bpsec_policy.c
@@ -230,6 +232,7 @@ set(BP_SOURCES
   ${SRC_DIR}/bpv7/library/bei.c
   ${SRC_DIR}/bpv7/bpsec/policy/bpsec_policy_eventset.c
   ${SRC_DIR}/bpv7/library/eureka.c
+  ${SRC_DIR}/bpv7/library/cbr.c
   ${SRC_DIR}/bpv7/library/libbpP.c
   ${SRC_DIR}/bpv7/bpsec/sci/rfc9173_utils.c
   ${SRC_DIR}/bpv7/library/ext/bpsec/bib.c
@@ -261,11 +264,12 @@ endif()
 
 # Filter out test programs for separate executable targets
 set(BP_EXECUTABLES
-  bpadmin 
-  bpclm 
-  bpclock 
-  bpversion 
-  stcpcli 
+  bpadmin
+  bpclm
+  bpclock
+  # bpversion removed in ION 4.1.4 stable
+  cbrcustodytest
+  stcpcli
   stcpclo 
   udpcli 
   udpclo 
@@ -382,6 +386,8 @@ target_include_directories(bpcore_static PUBLIC
   ${INC_DIR}/bpv7/library/ext/bpq
   ${INC_DIR}/bpv7/library/ext/imc
   ${INC_DIR}/bpv7/library/ext/snw
+  ${INC_DIR}/bpv7/library/ext/cteb
+  ${INC_DIR}/bpv7/library/ext/creb
   ${INC_DIR}/bpv7/cgr
   ${INC_DIR}/bpv7/bpsec
   ${INC_DIR}/bpv7/bpsec/instr
@@ -416,6 +422,8 @@ target_include_directories(bpcore_shared PUBLIC
   ${INC_DIR}/bpv7/library/ext/bpq
   ${INC_DIR}/bpv7/library/ext/imc
   ${INC_DIR}/bpv7/library/ext/snw
+  ${INC_DIR}/bpv7/library/ext/cteb
+  ${INC_DIR}/bpv7/library/ext/creb
   ${INC_DIR}/bpv7/cgr
   ${INC_DIR}/bpv7/bpsec
   ${INC_DIR}/bpv7/bpsec/instr
@@ -624,7 +632,7 @@ if("bpinspect" IN_LIST ALL_PROGRAMS)
 endif()
 
 # Copy utility scripts from ION-DTN to bin directory
-set(ION_SCRIPTS ionstart ionstart.awk ionstop killm ionprocesslist.sh)
+set(ION_SCRIPTS ionstart ionstart.awk ionstop killm ionprocesses.txt)
 foreach(SCRIPT IN LISTS ION_SCRIPTS)
   configure_file(
     ${SRC_DIR}/${SCRIPT}

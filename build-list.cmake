@@ -154,8 +154,9 @@ list(APPEND PROGRAMS
   # ionwatch  # Optional: Uncomment to enable
 
   # BPv7 utilities
-  bpversion
+  # bpversion  # Removed in ION 4.1.4 stable
   # bpinspect  # Optional: Uncomment to enable
+  cbrcustodytest
   # bptracker  # Optional: Uncomment to enable
 
   # Load-and-Go Command
@@ -220,4 +221,6 @@ set(COMBINATION_TESTS
   "bping+bpecho+udpcli:bping/"
   "cfdpadmin+ltpcli:issue-352-bpcp-ltp/"
   "cfdpadmin+stcpcli:issue-352-bpcp-stcp/"
+  "cbrcustodytest+ltpcli:cbr-ct-orange-book/custody-simple/"
+  "cbrcustodytest+ltpcli:cbr-ct-orange-book/crs-simple/"
 )

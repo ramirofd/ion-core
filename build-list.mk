@@ -110,8 +110,8 @@ PROGRAMS += psmwatch sdrwatch
 #PROGRAMS += ionwatch
 
 ## BPv7 utilities
-PROGRAMS += bpversion
-#PROGRAMS += bpinspect bptracker 
+# bpversion removed in ION 4.1.4 stable
+#PROGRAMS += bpinspect bptracker
 
 ## Load-and-Go Command
 PROGRAMS += lgagent lgsend
