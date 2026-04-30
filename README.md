@@ -32,7 +32,8 @@
 - [Contributing Code](#contributing-code)
 - [WSL2 Networking Issue](#wsl2-networking-issue)
 - [Release Notes](#release-notes)
-  - [Latest Release Tag: `4.1.3s`](#latest-release-tag-413s)
+  - [Latest Release Tag: `4.1.4`](#latest-release-tag-414)
+  - [Tag: `4.1.3s`](#tag-413s)
   - [Tag: `4.1.3s-a.1`](#tag-413s-a1)
   - [Tag: `4.1.3`](#tag-413)
   - [Tag: `4.1.2b`](#tag-412b)
@@ -377,7 +378,7 @@ This set of minimum values are sufficient to pass the regression tests under the
 
 # CMake Build System - Detailed Reference
 
-CMake is now a fully supported build method for ion-core (as of version 4.1.4 beta 1). For basic build instructions, see the [Build & Install](#build--install) section. This section provides detailed CMake command reference and advanced usage.
+CMake is the recommended build method for ion-core as of version 4.1.4. For basic build instructions, see the [Build & Install](#build--install) section. This section provides detailed CMake command reference and advanced usage.
 
 **Key features:**
 - Uses ION-DTN as a git submodule (`external/ION-DTN`)
@@ -679,7 +680,25 @@ https://github.com/sakai135/wsl-vpnkit
 
 # Release Notes
 
-## Latest Release Tag: `4.1.3s`
+## Latest Release Tag: `4.1.4`
+
+4/29/2026
+Update codebase to ION open source version 4.1.4 (`ion-open-source-4.1.4`).
+
+* Submodule pinned to ION-DTN tag `ion-open-source-4.1.4` (see `ION_DTN_VERSION`).
+* Both build methods now work against 4.1.4 stable:
+  * **Method 1 (CMake, recommended):** updated source list and include paths for new ION sources (`cbr.c`, `cteb.c`, `creb.c`); removed `bpversion` (deleted upstream); replaced `ionprocesslist.sh` with `ionprocesses.txt` (consumed by `killm`).
+  * **Method 2 (extract.sh + Makefile, legacy):** `mdir/libbp.mk` updated for new BP sources; new `mdir/cbrcustodytest.mk`; `mdir/psmwatch.mk` now links the full ICI library (4.1.4 `psmwatch` calls `ionAttach`/`getIonsdr`/`sdr_*`); `extract.sh` now copies (instead of symlinking) the one file it modifies, so the ION-DTN submodule working tree stays clean across branch switches.
+* New BP utility `cbrcustodytest` (from `bpv7/test/`) is built and installed; used by the two new regression tests below.
+* New regression tests added to the `make test` set, both drawn from ION's `cbr-ct-orange-book/` test suite:
+  * `custody-simple` — end-to-end Custody Transfer with CCS-based release.
+  * `crs-simple` — Compressed Reporting Signal (CRS) status reporting.
+* Man pages:
+  * `cbrcustodytest(1)` — tool man page, generated automatically by both build methods.
+  * `cbr(3)` — concept man page covering Custody Transfer (CT) and Compressed Bundle Reporting (CRS), drawn from upstream `bpv7/doc/pod3/cbr.pod`. New section-3 generation and install support added to `make-man-pages.sh`, the Makefile, and CMakeLists.txt.
+* Verified: 9/9 regression tests pass under both build methods on 64-bit Linux.
+
+## Tag: `4.1.3s`
 
 7/3/2025
 Update codebase to ION open source verion 4.1.3s - BPSec prototype is still considered experimental, therefore not included in this release. Following updates were made:

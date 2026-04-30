@@ -1,471 +1,212 @@
 # ION Core Feature List
 
-**Last Update:** 2025-11-11
+**ION Core Version:** 4.1.4
+**Last Update:** 2026-04-29
+**Based on:** ION-DTN `ion-open-source-4.1.4`
 
-## **ION Core Version:** 4.1.4-b.1
+This document lists the features and components included in this release of ION Core, organized by category. Only features that are actually built and installed are listed; planned and unsupported items have been removed.
 
-Based on ION-DTN version 4.1.4-b.1.
+## Table of Contents
 
-## Status Legend
-
-- **y** = included mandatory
-- **c** = included optional build
-- **p** = planned (will be released in next version)
-- **w** = requested (requested for inclusion in future TBD version)
-
-## [ION Core Feature List](#ion-core-feature-list)
-- [ION Core Feature List](#ion-core-feature-list)
-  - [**ION Core Version:** 4.1.4-b.1](#ion-core-version-414-b1)
-  - [Status Legend](#status-legend)
-  - [ION Core Feature List](#ion-core-feature-list-1)
-  - [ici](#ici)
-  - [ici - utility](#ici---utility)
-  - [bpv7](#bpv7)
-  - [bpextensions - all part of bpv7](#bpextensions---all-part-of-bpv7)
-  - [bpv7 - ipn](#bpv7---ipn)
-  - [bpv7 - ipnd](#bpv7---ipnd)
-  - [bpv7 - bibe](#bpv7---bibe)
-  - [bpv7 - bpsec](#bpv7---bpsec)
-  - [bpv7 - brs](#bpv7---brs)
-  - [bpv7 - load and go](#bpv7---load-and-go)
-  - [ams](#ams)
-  - [bss](#bss)
-  - [bpv7 - bssp - deprecated](#bpv7---bssp---deprecated)
-  - [bpv6 - bssp - legacy, no plan for inclusion in the future](#bpv6---bssp---legacy-no-plan-for-inclusion-in-the-future)
-  - [bpv7 - stcp](#bpv7---stcp)
-  - [bpv7 - tcp](#bpv7---tcp)
-  - [bpv7 - udp](#bpv7---udp)
-  - [cfdp](#cfdp)
-  - [bpv7 - cgr](#bpv7---cgr)
-  - [bpv7 - cpsd](#bpv7---cpsd)
-  - [bpv7 - dccp](#bpv7---dccp)
-  - [dgr](#dgr)
-  - [dtpc](#dtpc)
-  - [bpv7 - imc](#bpv7---imc)
-  - [tc - dtka](#tc---dtka)
-  - [bpv7 - dtn2](#bpv7---dtn2)
-  - [ltp](#ltp)
-  - [mn](#mn)
-  - [restart](#restart)
-  - [tc](#tc)
-  - [manpages](#manpages)
-  - [utilities](#utilities)
-  - [Platform Port Examples](#platform-port-examples)
-  - [External Contributions](#external-contributions)
-  - [bench tests](#bench-tests)
-  - [regression tests](#regression-tests)
-  - [Notes for Version 4.1.4-b.1](#notes-for-version-414-b1)
-  - [Build Configuration](#build-configuration)
-    - [Extension Block Build Options](#extension-block-build-options)
-    - [Convergence Layer Adapters (CLAs)](#convergence-layer-adapters-clas)
-  - [References](#references)
-
+- [Core Infrastructure (ICI)](#core-infrastructure-ici)
+- [Bundle Protocol v7 (BPv7)](#bundle-protocol-v7-bpv7)
+- [BP Extension Blocks](#bp-extension-blocks)
+- [Custody Transfer & Compressed Bundle Reporting](#custody-transfer--compressed-bundle-reporting)
+- [IPN Naming Scheme](#ipn-naming-scheme)
+- [Licklider Transmission Protocol (LTP)](#licklider-transmission-protocol-ltp)
+- [Convergence Layer Adapters (CLAs)](#convergence-layer-adapters-clas)
+- [CFDP (CCSDS File Delivery Protocol)](#cfdp-ccsds-file-delivery-protocol)
+- [Load-and-Go](#load-and-go)
+- [Restart](#restart)
+- [Application Utilities](#application-utilities)
+- [Diagnostic Utilities](#diagnostic-utilities)
+- [Bundle Copy (bpcp)](#bundle-copy-bpcp)
+- [Test Tools and Simulators](#test-tools-and-simulators)
+- [Regression Tests](#regression-tests)
+- [Manual Pages](#manual-pages)
+- [Build Configuration](#build-configuration)
+- [References](#references)
 
 ---
 
-## ici
-
-| Status | Executable/Library |
-|--------|-------------------|
-| y | ionadmin |
-| y | ionwarn |
-| y | rfxclock |
-| y | ionrestart |
-| y | ionstart |
-| y | ionstart.awk |
-| y | ionstop |
-| y | killm |
-| | file2sdr |
-| | file2sm |
-| | ionexit |
-| | ionlog |
-| | ionunlock |
-| | ionxnowner |
-| p | ionsecadmin |
-
-## ici - utility
-
-| Status | Executable/Library |
-|--------|-------------------|
-| | psmshell |
-| c | psmwatch |
-| | sdr2file |
-| | sdrmend |
-| c | sdrwatch |
-| | sm2file |
-| | smlistsh |
-| | smrbtsh |
-| | tcp2file |
-| | udp2file |
-
-## bpv7
-
-| Status | Executable/Library |
-|--------|-------------------|
-| y | bpadmin |
-| y | bpclm |
-| y | bpclock |
-| y | bptransit |
-| c | bpversion |
-
-## bpextensions - all part of bpv7
-
-| Status | Executable/Library | Notes |
-|--------|-------------------|-------|
-| y | bpq/qos (quality of service) | Enabled by default for locally sourced bundles (flag: BPQ_EXT) |
-| y | imc (bundle multicast) | Enabled by default for locally sourced bundles |
-| c | pbn (previous node) | Configurable via EXT_FLAGS in build-list.mk |
-| c | bae (bundle age) | Configurable via EXT_FLAGS in build-list.mk |
-| c | snw (spray and wait) | Configurable via EXT_FLAGS in build-list.mk |
-| y | meb (metadata) | Always supported for processing |
-| y | hcb (hop count) | Always supported for processing |
-| y | bib (bundle integrity) | Always supported for processing |
-| y | bcb (bundle confidentiality) | Always supported for processing |
-| | cgrr (cgr route extension) | |
-| | rgr (register route extension) | |
-
-## bpv7 - ipn
-
-| Status | Executable/Library |
-|--------|-------------------|
-| y | ipnadmin |
-| y | ipnadminep |
-| y | ipnfw |
-
-## bpv7 - ipnd
-
-| Status | Executable/Library |
-|--------|-------------------|
-| | ipnd |
-
-## bpv7 - bibe
-
-| Status | Executable/Library |
-|--------|-------------------|
-| | bibeadmin |
-| | bibeclo |
-
-## bpv7 - bpsec
-
-| Status | Executable/Library |
-|--------|-------------------|
-| p | bpsecadmin |
-
-## bpv7 - brs
-
-| Status | Executable/Library |
-|--------|-------------------|
-| | brsccla |
-| | brsscla |
-
-## bpv7 - load and go
-
-| Status | Executable/Library |
-|--------|-------------------|
-| c | lgagent |
-| c | lgsend |
-
-## ams
-
-| Status | Executable/Library |
-|--------|-------------------|
-| | amsmib |
-| | amsshell |
-| | amsstop |
-| | ramsgate |
-
-## bss
-
-| Status | Executable/Library |
-|--------|-------------------|
-| p | bsscounter |
-| p | bssdriver |
-| p | bssrecv |
-| p | bssStreamingApp |
-
-## bpv7 - bssp - deprecated
-
-| Status | Executable/Library |
-|--------|-------------------|
-| | bsspadmin |
-| | bsspcli |
-| | bsspclo |
-| | bsspclock |
-| | udpbso |
-| | udpbsi |
-| | tcpbso |
-| | tcpbsi |
-
-## bpv6 - bssp - legacy, no plan for inclusion in the future
-
-| Status | Executable/Library |
-|--------|-------------------|
-| | bsspadmin |
-| | bsspcli |
-| | bsspclo |
-| | bsspclock |
-| | udpbso |
-| | udpbsi |
-| | tcpbso |
-| | tcpbsi |
-
-## bpv7 - stcp
-
-| Status | Executable/Library |
-|--------|-------------------|
-| c | stcpcli |
-| c | stcpclo |
-
-## bpv7 - tcp
-
-| Status | Executable/Library |
-|--------|-------------------|
-| p | tcpbsi |
-| p | tcpsbo |
-
-## bpv7 - udp
-
-| Status | Executable/Library |
-|--------|-------------------|
-| c | udpcli |
-| c | udpclo |
-
-## cfdp
-
-| Status | Executable/Library |
-|--------|-------------------|
-| c | bputa |
-| c | cfdpadmin |
-| c | cfdpclock |
-| c | cfdptest |
-| c | tcputa |
-
-## bpv7 - cgr
-
-| Status | Executable/Library |
-|--------|-------------------|
-| | cgrfetch |
-
-## bpv7 - cpsd
-
-| Status | Executable/Library |
-|--------|-------------------|
-| | cpsd |
-
-## bpv7 - dccp
-
-| Status | Executable/Library |
-|--------|-------------------|
-| | dccpcli |
-| | dccpclo |
-| | dccplsi |
-| | dccplso |
-
-## dgr
-
-| Status | Executable/Library |
-|--------|-------------------|
-| | dgr2file |
-| | dgrcli |
-| | dgrclo |
-| | file2dgr |
-
-## dtpc
-
-| Status | Executable/Library |
-|--------|-------------------|
-| | dtpcadmin |
-| | dtpcclock |
-| | dtpcd |
-| | dtpcreceive |
-| | dtpcsend |
-
-## bpv7 - imc
-
-| Status | Executable/Library |
-|--------|-------------------|
-| y | libimcfw |
-| | imcadmin |
-| | imcadminep |
-| | imcfw |
-
-## tc - dtka
-
-| Status | Executable/Library |
-|--------|-------------------|
-| | dtka |
-| | dtkaadmin |
-
-## bpv7 - dtn2
-
-| Status | Executable/Library |
-|--------|-------------------|
-| | dtn2admin |
-| | dtn2adminep |
-| | dtn2fw |
-
-## ltp
-
-| Status | Executable/Library |
-|--------|-------------------|
-| c | ltpcli |
-| c | ltpclo |
-| c | ltpclock |
-| c | ltpdeliv |
-| c | ltpmeter |
-| c | udplsi |
-| c | udplso |
-| c | ltpadmin |
-| c | sdatest |
-| c | ltpcounter |
-| c | ltpdriver |
-| c | ltpsecadmin |
-
-## mn
-
-| Status | Executable/Library |
-|--------|-------------------|
-| | nm_agent |
-| | nm_mgr |
-
-## restart
-
-| Status | Executable/Library |
-|--------|-------------------|
-| y | ionrestart |
-
-## tc
-
-| Status | Executable/Library |
-|--------|-------------------|
-| | tcaddmin |
-| | tcaboot |
-| | tcacompile |
-| | tcapublish |
-| | tcarecv |
-| | tcc |
-| | tccadmin |
-
-## manpages
-
-| Status | Executable/Library |
-|--------|-------------------|
-| c | |
-
-## utilities
-
-| Status | Executable/Library |
-|--------|-------------------|
-| c | bprecvfile |
-| c | bpsendfile |
-| | bprecvfile2 |
-| y | bpsink |
-| y | bpsource |
-| c | bpcancel |
-| c | bpchat |
-| c | bpcounter |
-| c | bpcp |
-| c | bpcpd |
-| | bpcrash |
-| c | bpdriver |
-| y | bpecho |
-| y | bping |
-| c | bplist |
-| | bpnmtest |
-| y | bpstats |
-| | bpstats2 |
-| y | bptrace |
-| c | owltsim |
-| | secure_bpsendfile |
-| | secure_bprecvfile |
-
-## Platform Port Examples
-
-| Status | Executable/Library |
-|--------|-------------------|
-| | arch-android |
-| | arch-rtems |
-| | arch-uClibc |
-
-## External Contributions
-
-| Status | Executable/Library |
-|--------|-------------------|
-| | bptap |
-| | dtnperf |
-| | dtnsuite |
-| | F prime integration prototype |
-
-## bench tests
-
-| Status | Executable/Library |
-|--------|-------------------|
-| c | bench-ltp |
-| c | bench-udp |
-| c | bench-stcp |
-| c | bench-cfdp |
-
-## regression tests
-
-| Status | Executable/Library |
-|--------|-------------------|
-| c | demos/bench-udp |
-| c | demos/bench-ltp |
-| c | demos/bench-stcp |
-| c | demos/bench-cfdp |
-| c | tests/bptrace_terminal_test |
-| c | tests/bping |
-| c | tests/issue-352-bpcp-ltp |
-| c | tests/issue-352-bpcp-stcp |
-
----
-
-## Notes for Version 4.1.4-b.1
-
-This feature list is based on ION Core 4.1.3s and updated for 4.1.4-b.1. The following changes are anticipated for 4.1.4-b.1:
-
-1. **New source files and APIs** - ION-DTN 4.1.4-b.1 includes new source files and public APIs (details TBD)
-2. **BPSec support** - bpsecadmin is planned (p = planned) for 4.1.5
-3. **ION-Core-specific modifications** - Only `bpextensions.c` requires conditional compilation changes for ION-CORE-BUILD flag
-4. **Submodule architecture** - This version uses ION-DTN as a git submodule pointing to tag `ion-open-source-4.1.4-b.1`
-
----
+## Core Infrastructure (ICI)
+
+| Component | Description |
+|-----------|-------------|
+| `ionadmin` | ION node administration utility |
+| `ionwarn` | ION resource usage warnings |
+| `rfxclock` | Contact / range plan event clock |
+| `ionrestart` | Coordinated ION subsystem restart |
+| `ionstart` | Bring up an ION node from configuration files |
+| `ionstart.awk` | Helper used by `ionstart` |
+| `ionstop` | Graceful ION node shutdown |
+| `killm` | Force-kill ION processes and clear IPC state |
+
+## Bundle Protocol v7 (BPv7)
+
+| Component | Description |
+|-----------|-------------|
+| `bpadmin` | BP administration utility |
+| `bpclm` | BP convergence-layer manager daemon |
+| `bpclock` | BP timer / housekeeping daemon |
+| `bptransit` | BP transit (forwarding) daemon |
+
+## BP Extension Blocks
+
+| Block | Default | Description |
+|-------|---------|-------------|
+| BPQ (Quality of Service) | enabled | Bundle priority extension; built into bundles produced locally (`BPQ_EXT`) |
+| IMC (Multicast) | enabled | Interplanetary Multicast extension |
+| MEB (Metadata) | always on | Metadata extension; processed for received bundles |
+| HCB (Hop Count) | always on | Hop-count extension; processed for received bundles |
+| BIB (Bundle Integrity) | always on | BPSec integrity block; processed for received bundles |
+| BCB (Bundle Confidentiality) | always on | BPSec confidentiality block; processed for received bundles |
+| PNB (Previous Node) | optional | Enable via `EXT_FLAGS` in `build-list.mk` |
+| BAE (Bundle Age) | optional | Enable via `EXT_FLAGS` in `build-list.mk` |
+| SNW (Spray and Wait) | optional | Enable via `EXT_FLAGS` in `build-list.mk` |
+| CTEB (Custody Transfer) | always on | Custody-transfer extension block (see [Custody Transfer & CRS](#custody-transfer--compressed-bundle-reporting)) |
+| CREB (Compressed Reporting) | always on | Compressed-reporting extension block (see [Custody Transfer & CRS](#custody-transfer--compressed-bundle-reporting)) |
+
+## Custody Transfer & Compressed Bundle Reporting
+
+New in 4.1.4. Implements the CCSDS Orange Book "Compressed Bundle Status Reporting and Custody Signaling" specification on top of BPv7.
+
+| Component | Description |
+|-----------|-------------|
+| Custody Transfer (CT) | Bundle custody handoff with Compressed Custody Signal (CCS) for release |
+| Compressed Reporting Signal (CRS) | Aggregated alternative to traditional BPv7 status reports |
+| `cbrcustodytest` | Test/diagnostic utility that exercises the CT and CRS APIs |
+| `cbr` library | Public C API (see man page `cbr(3)`) used by applications that opt into custody transfer or CRS |
+
+## IPN Naming Scheme
+
+| Component | Description |
+|-----------|-------------|
+| `ipnadmin` | IPN scheme administration utility |
+| `ipnadminep` | IPN endpoint administration helper |
+| `ipnfw` | IPN-scheme bundle forwarder |
+
+Both 2-part (`ipn:node.service`) and 3-part / FQNN (`ipn:allocator.node.service`) endpoint identifiers are supported.
+
+## Licklider Transmission Protocol (LTP)
+
+| Component | Description |
+|-----------|-------------|
+| `ltpadmin` | LTP administration utility |
+| `ltpclock` | LTP timer / housekeeping daemon |
+| `ltpmeter` | LTP transmission metering daemon |
+| `ltpdeliv` | LTP delivery daemon |
+| `ltpcli` | LTP convergence-layer input adapter for BP |
+| `ltpclo` | LTP convergence-layer output adapter for BP |
+| `udplsi` | UDP-based LTP link service input |
+| `udplso` | UDP-based LTP link service output |
+
+## Convergence Layer Adapters (CLAs)
+
+At least one CLA must be selected at build time.
+
+| CLA | Components | Notes |
+|-----|------------|-------|
+| LTP | `ltpcli`, `ltpclo`, `udplsi`, `udplso` | Recommended for long-delay / lossy links |
+| UDP | `udpcli`, `udpclo` | Simple datagram CLA |
+| STCP | `stcpcli`, `stcpclo` | Simple TCP CLA |
+
+## CFDP (CCSDS File Delivery Protocol)
+
+| Component | Description |
+|-----------|-------------|
+| `cfdpadmin` | CFDP administration utility |
+| `cfdpclock` | CFDP timer / housekeeping daemon |
+| `cfdptest` | CFDP test driver |
+| `bputa` | BP-based CFDP UT-Adapter |
+
+## Load-and-Go
+
+| Component | Description |
+|-----------|-------------|
+| `lgsend` | Send a load-and-go command over BP |
+| `lgagent` | Receive and execute load-and-go commands |
+
+## Restart
+
+| Component | Description |
+|-----------|-------------|
+| `ionrestart` | Coordinated restart utility (also listed under ICI) |
+
+## Application Utilities
+
+| Component | Description |
+|-----------|-------------|
+| `bpsource` | Send bundles from stdin |
+| `bpsink` | Receive bundles and write payloads to stdout |
+| `bping` | DTN-aware ping over BP |
+| `bpecho` | Echo responder for `bping` |
+| `bpsendfile` | Send a file as one or more bundles |
+| `bprecvfile` | Receive bundles and write payload to a file |
+| `bpchat` | Interactive bundle chat |
+| `bptrace` | Send a bundle with status-report flags set |
+| `bpcancel` | Cancel a previously sent bundle |
+| `bplist` | List bundles in the local SDR |
+
+## Diagnostic Utilities
+
+| Component | Description |
+|-----------|-------------|
+| `bpstats` | Snapshot BP statistics to `ion.log` |
+| `bpcounter` | Count received bundles |
+| `bpdriver` | Bundle traffic driver for performance testing |
+| `psmwatch` | Inspect PSM (shared-memory) state |
+| `sdrwatch` | Inspect SDR (persistent storage) state |
+| `cbrcustodytest` | Custody-transfer / CRS diagnostic (see Custody Transfer section) |
+
+## Bundle Copy (bpcp)
+
+| Component | Description |
+|-----------|-------------|
+| `bpcp` | scp-like file copy over BP |
+| `bpcpd` | bpcp daemon (peer side) |
+
+## Test Tools and Simulators
+
+| Component | Description |
+|-----------|-------------|
+| `owltsim` | One-Way Light Time simulator (link-delay simulator) |
+
+## Regression Tests
+
+The `make test` target runs the following tests against the local build:
+
+| Test | Verifies |
+|------|----------|
+| `demos/bench-cfdp` | CFDP throughput / behavior over LTP |
+| `demos/bench-ltp` | LTP throughput / behavior |
+| `demos/bench-stcp` | STCP throughput / behavior |
+| `bping` | BP round-trip via `bping`/`bpecho` over UDP CLA |
+| `bptrace_terminal_test` | BP status-report exercise via `bptrace`/`bpsink` over LTP |
+| `issue-352-bpcp-ltp` | `bpcp` regression over LTP |
+| `issue-352-bpcp-stcp` | `bpcp` regression over STCP |
+| `cbr-ct-orange-book/custody-simple` | End-to-end custody transfer with CCS-based release |
+| `cbr-ct-orange-book/crs-simple` | Compressed Reporting Signal (CRS) status reporting |
+
+## Manual Pages
+
+Both build methods install man pages for every program in the build (section 1) plus concept pages (section 3):
+
+- Section 1: one man page per program built (e.g. `bpadmin(1)`, `ltpcli(1)`, `cbrcustodytest(1)`).
+- Section 3: `cbr(3)` — Custody Transfer and Compressed Bundle Reporting library.
 
 ## Build Configuration
 
-Features can be selected/excluded via the `build-list.mk` (Makefile) or `build-list.cmake` (CMake) files.
+Two build paths are supported. Both produce the same set of components.
 
-### Extension Block Build Options
+- **Method 1 (recommended): CMake.** Reads `build-list.cmake`. Uses ION-DTN's source files in place from the `external/ION-DTN` submodule.
+- **Method 2 (legacy): Makefile + `extract.sh`.** Reads `build-list.mk`. Symlinks ION-DTN sources into a flat `src/` layout before building.
 
-Extension blocks can be categorized into three groups:
-
-1. **Enabled by default for locally sourced bundles** (in build-list.mk):
-   - **BPQ_EXT** - Quality of Service Extension Block (BPQ/QoS, handles bundle priority)
-   - **IMC_EXT** - IMC Multicast Extension Block
-
-2. **Configurable via EXT_FLAGS** (commented out by default in build-list.mk):
-   - **PNB_EXT** - Previous Node Extension Block
-   - **BAE_EXT** - Bundle Age Extension Block
-   - **SNW_EXT** - Spray and Wait Permit Extension Block
-
-3. **Always supported for processing** (regardless of build configuration):
-   - MEB (Metadata), HCB (Hop Count), BIB (Bundle Integrity), BCB (Bundle Confidentiality)
-
-To enable additional extension blocks for locally sourced bundles, uncomment the corresponding lines in build-list.mk (lines 69-73).
-
-### Convergence Layer Adapters (CLAs)
-
-At least one CLA must be selected for build:
-
-- **LTP** - Licklider Transmission Protocol (c = included optional build)
-- **UDP** - User Datagram Protocol (c = included optional build)
-- **STCP** - Simple TCP (c = included optional build)
-- **TCP** - Transmission Control Protocol (w = planned)
-
----
+Components can be added or removed by editing `build-list.cmake` (Method 1) or `build-list.mk` (Method 2). Extension blocks are toggled via `EXT_FLAGS` in `build-list.mk`.
 
 ## References
 
-- ION-DTN Repository: https://github.com/nasa-jpl/ION-DTN
-- ION-Core Repository: https://github.com/nasa-jpl/ion-core-dev
-- Documentation: See [docs/SUBMODULE-WORKFLOW.md](docs/SUBMODULE-WORKFLOW.md)
+- ION-DTN repository: https://github.com/nasa-jpl/ION-DTN
+- ION-Core repository: https://github.com/nasa-jpl/ion-core-dev
+- Submodule workflow: [docs/SUBMODULE-WORKFLOW.md](docs/SUBMODULE-WORKFLOW.md)
+- CCSDS Orange Book — Compressed Bundle Status Reporting and Custody Signaling (basis for the CT/CRS feature)
