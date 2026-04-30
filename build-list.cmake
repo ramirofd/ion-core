@@ -151,13 +151,13 @@ list(APPEND PROGRAMS
   # ICI utilities
   psmwatch
   sdrwatch
-  # ionwatch  # Optional: Uncomment to enable
+  ionwatch
 
   # BPv7 utilities
   # bpversion  # Removed in ION 4.1.4 stable
-  # bpinspect  # Optional: Uncomment to enable
+  bpinspect
   cbrcustodytest
-  # bptracker  # Optional: Uncomment to enable
+  bptracker
 
   # Load-and-Go Command
   lgagent
@@ -181,6 +181,8 @@ list(APPEND PROGRAMS
   ltpdeliv
   ltpmeter
   ltpadmin
+  ltpwatch
+  ltpstats
 
   # CFDP Class 1
   bputa

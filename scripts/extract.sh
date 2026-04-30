@@ -274,6 +274,8 @@ SOURCES=(
   "$SOURCE_PATH/ltp/udp/udplsi.c:ltp"
   "$SOURCE_PATH/ltp/udp/udplso.c:ltp"
   "$SOURCE_PATH/ltp/utils/ltpadmin.c:ltp"
+  "$SOURCE_PATH/ltp/utils/ltpwatch.c:ltp"
+  "$SOURCE_PATH/ltp/utils/ltpstats.c:ltp"
   "$SOURCE_PATH/restart/utils/ionrestart.c:restart"
 )
 
@@ -429,6 +431,8 @@ MANPAGE=(
   "$SOURCE_PATH/ltp/doc/pod1/ltpadmin.pod:ltp"
   "$SOURCE_PATH/ltp/doc/pod1/ltpclock.pod:ltp"
   "$SOURCE_PATH/ltp/doc/pod1/ltpmeter.pod:ltp"
+  "$SOURCE_PATH/ltp/doc/pod1/ltpwatch.pod:ltp"
+  "$SOURCE_PATH/ltp/doc/pod1/ltpstats.pod:ltp"
   "$SOURCE_PATH/ltp/doc/pod1/udplsi.pod:ltp"
   "$SOURCE_PATH/ltp/doc/pod1/udplso.pod:ltp"
   "$SOURCE_PATH/restart/doc/pod1/ionrestart.pod:restart"

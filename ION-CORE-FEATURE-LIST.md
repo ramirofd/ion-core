@@ -155,6 +155,11 @@ At least one CLA must be selected at build time.
 | `bpstats` | Snapshot BP statistics to `ion.log` |
 | `bpcounter` | Count received bundles |
 | `bpdriver` | Bundle traffic driver for performance testing |
+| `bpinspect` | Inspect bundles in the local SDR with filter / output options |
+| `bptracker` | Track bundle status reports |
+| `ionwatch` | ION daemon status monitor (ICI, BP, LTP, optional CFDP/DTPC/BSSP) |
+| `ltpwatch` | LTP session status monitor (export / import sessions) |
+| `ltpstats` | Snapshot LTP statistics to `ion.log` |
 | `psmwatch` | Inspect PSM (shared-memory) state |
 | `sdrwatch` | Inspect SDR (persistent storage) state |
 | `cbrcustodytest` | Custody-transfer / CRS diagnostic (see Custody Transfer section) |

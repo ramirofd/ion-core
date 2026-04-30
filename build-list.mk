@@ -106,12 +106,11 @@ PROGRAMS += bpsink bpsource bpecho bping bpstats bptrace
 # This list can be modified. At least one CLA must be included.
 
 ## ICI utilities
-PROGRAMS += psmwatch sdrwatch
-#PROGRAMS += ionwatch
+PROGRAMS += psmwatch sdrwatch ionwatch
 
 ## BPv7 utilities
 # bpversion removed in ION 4.1.4 stable
-#PROGRAMS += bpinspect bptracker
+PROGRAMS += bpinspect bptracker
 PROGRAMS += cbrcustodytest
 
 ## Load-and-Go Command
@@ -125,7 +124,7 @@ PROGRAMS += stcpcli stcpclo
 PROGRAMS += udpcli udpclo 
 
 ### LTP CLA
-PROGRAMS += ltpcli ltpclo udplsi udplso ltpclock ltpdeliv ltpmeter ltpadmin
+PROGRAMS += ltpcli ltpclo udplsi udplso ltpclock ltpdeliv ltpmeter ltpadmin ltpwatch ltpstats
 
 ## CFDP Class 1
 PROGRAMS += bputa cfdpclock cfdptest cfdpadmin 

@@ -202,6 +202,8 @@ set(LTP_PROGRAMS
   ltpadmin
   ltpclock
   ltpmeter
+  ltpwatch
+  ltpstats
   udplsi
   udplso
   ltpdeliv
