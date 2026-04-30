@@ -30,6 +30,20 @@ POD_SEARCH_PATHS=(
   "${ION_SRC}/restart/doc/pod1"
 )
 
+# Concept (section 3) man pages built unconditionally.
+# Format: "podname:section". Search both flat src/man and pod3 dirs.
+CONCEPT_PAGES=(
+  "cbr:3"                         # Custody transfer + Compressed Bundle Reporting
+)
+POD3_SEARCH_PATHS=(
+  "${ION_SRC}"
+  "${ION_SRC}/man"
+  "${ION_SRC}/bpv7/doc/pod3"
+  "${ION_SRC}/ici/doc/pod3"
+  "${ION_SRC}/cfdp/doc/pod3"
+  "${ION_SRC}/ltp/doc/pod3"
+)
+
 # Ensure the man output directory exists
 mkdir -p "$MAN_OUTPUT_DIR"
 
@@ -61,5 +75,27 @@ for prog in "${prog_array[@]}"; do
 
     if [[ $found -eq 0 ]]; then
         echo "WARNING: Documentation for $prog is not available in any of the search paths."
+    fi
+done
+
+# Generate concept (non-program) man pages — typically section 3 library docs.
+for entry in "${CONCEPT_PAGES[@]}"; do
+    name="${entry%%:*}"
+    section="${entry##*:}"
+    found=0
+    for pod_dir in "${POD3_SEARCH_PATHS[@]}"; do
+        full_path="${pod_dir}/${name}.pod"
+        if [[ -f "$full_path" ]]; then
+            echo "Found pod file: $full_path (section $section)"
+            if $POD2MAN --section="$section" "$full_path" \
+                | gzip -c > "${MAN_OUTPUT_DIR}/${name}.${section}.gz"; then
+                echo "Generated section-${section} man page for $name"
+                found=1
+                break
+            fi
+        fi
+    done
+    if [[ $found -eq 0 ]]; then
+        echo "WARNING: Concept documentation for $name (section $section) not found."
     fi
 done

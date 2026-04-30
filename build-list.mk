@@ -112,6 +112,7 @@ PROGRAMS += psmwatch sdrwatch
 ## BPv7 utilities
 # bpversion removed in ION 4.1.4 stable
 #PROGRAMS += bpinspect bptracker
+PROGRAMS += cbrcustodytest
 
 ## Load-and-Go Command
 PROGRAMS += lgagent lgsend
@@ -157,4 +158,6 @@ COMBINATION_TESTS := \
   bptrace+bpsink+ltpcli:bptrace_terminal_test/ \
   bping+bpecho+udpcli:bping/ \
   cfdpadmin+ltpcli:issue-352-bpcp-ltp/ \
-  cfdpadmin+stcpcli:issue-352-bpcp-stcp/
+  cfdpadmin+stcpcli:issue-352-bpcp-stcp/ \
+  cbrcustodytest+ltpcli:custody-simple/ \
+  cbrcustodytest+ltpcli:crs-simple/

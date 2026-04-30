@@ -178,6 +178,8 @@ SOURCES=(
   "$SOURCE_PATH/bpv7/library/eureka.c:bpv7"
   "$SOURCE_PATH/bpv7/library/ext/bae/bae.c:bpv7"
   "$SOURCE_PATH/bpv7/library/ext/bpq/bpq.c:bpv7"
+  "$SOURCE_PATH/bpv7/library/ext/cteb/cteb.c:bpv7"
+  "$SOURCE_PATH/bpv7/library/ext/creb/creb.c:bpv7"
   "$SOURCE_PATH/bpv7/library/ext/bpsec/bcb.c:bpv7"
   "$SOURCE_PATH/bpv7/library/ext/bpsec/bib.c:bpv7"
   "$SOURCE_PATH/bpv7/library/ext/hcb/hcb.c:bpv7"
@@ -187,6 +189,7 @@ SOURCES=(
   "$SOURCE_PATH/bpv7/library/ext/snw/snw.c:bpv7"
   "$SOURCE_PATH/bpv7/library/libbp.c:bpv7"
   "$SOURCE_PATH/bpv7/library/libbpP.c:bpv7"
+  "$SOURCE_PATH/bpv7/library/cbr.c:bpv7"
   "$SOURCE_PATH/bpv7/ltp/ltpcli.c:bpv7"
   "$SOURCE_PATH/bpv7/ltp/ltpclo.c:bpv7"
   "$SOURCE_PATH/bpv7/saga/saga.c:bpv7"
@@ -200,6 +203,7 @@ SOURCES=(
   "$SOURCE_PATH/bpv7/test/bping.c:bpv7"
   "$SOURCE_PATH/bpv7/test/bpsink.c:bpv7"
   "$SOURCE_PATH/bpv7/test/bpsource.c:bpv7"
+  "$SOURCE_PATH/bpv7/test/cbrcustodytest.c:bpv7"
   "$SOURCE_PATH/bpv7/udp/libudpcla.c:bpv7"
   "$SOURCE_PATH/bpv7/udp/udpcli.c:bpv7"
   "$SOURCE_PATH/bpv7/udp/udpclo.c:bpv7"
@@ -215,7 +219,6 @@ SOURCES=(
   "$SOURCE_PATH/bpv7/utils/bpstats.c:bpv7"
   "$SOURCE_PATH/bpv7/utils/bptrace.c:bpv7"
   "$SOURCE_PATH/bpv7/utils/bptracker.c:bpv7"
-  "$SOURCE_PATH/bpv7/utils/bpversion.c:bpv7"
   "$SOURCE_PATH/bpv7/utils/lgagent.c:bpv7"
   "$SOURCE_PATH/bpv7/utils/lgsend.c:bpv7"
   "$SOURCE_PATH/cfdp/bp/bputa.c:cfdp"
@@ -301,10 +304,14 @@ HEADERS=(
   "$SOURCE_PATH/bpv7/ipn/ipnfw.h:bpv7"
   "$SOURCE_PATH/bpv7/library/bei.h:bpv7"
   "$SOURCE_PATH/bpv7/library/bpP.h:bpv7"
+  "$SOURCE_PATH/bpv7/library/cbr.h:bpv7"
+  "$SOURCE_PATH/bpv7/library/cbrP.h:bpv7"
   "$SOURCE_PATH/bpv7/library/cgr.h:bpv7"
   "$SOURCE_PATH/bpv7/library/ext/bae/bae.h:bpv7"
   "$SOURCE_PATH/bpv7/library/ext/bpextensions.c:bpv7"
   "$SOURCE_PATH/bpv7/library/ext/bpq/bpq.h:bpv7"
+  "$SOURCE_PATH/bpv7/library/ext/cteb/cteb.h:bpv7"
+  "$SOURCE_PATH/bpv7/library/ext/creb/creb.h:bpv7"
   "$SOURCE_PATH/bpv7/library/ext/bpsec/bcb.h:bpv7"
   "$SOURCE_PATH/bpv7/library/ext/bpsec/bib.h:bpv7"
   "$SOURCE_PATH/bpv7/library/ext/hcb/hcb.h:bpv7"
@@ -368,7 +375,7 @@ SCRIPTS=(
   "$SOURCE_PATH/ionstart"
   "$SOURCE_PATH/ionstop"
   "$SOURCE_PATH/ionstart.awk"
-  "$SOURCE_PATH/ionprocesslist.sh"
+  "$SOURCE_PATH/ionprocesses.txt"
   "$SOURCE_PATH/killm"
 )
 
@@ -392,7 +399,8 @@ MANPAGE=(
   "$SOURCE_PATH/bpv7/doc/pod1/bptrace.pod:bpv7"
   "$SOURCE_PATH/bpv7/doc/pod1/bptracker.pod:bpv7"
   "$SOURCE_PATH/bpv7/doc/pod1/bptransit.pod:bpv7"
-  "$SOURCE_PATH/bpv7/doc/pod1/bpversion.pod:bpv7"
+  "$SOURCE_PATH/bpv7/doc/pod1/cbrcustodytest.pod:bpv7"
+  "$SOURCE_PATH/bpv7/doc/pod3/cbr.pod:bpv7"
   "$SOURCE_PATH/bpv7/doc/pod1/ipnadmin.pod:bpv7"
   "$SOURCE_PATH/bpv7/doc/pod1/ipnadminep.pod:bpv7"
   "$SOURCE_PATH/bpv7/doc/pod1/ipnfw.pod:bpv7"
@@ -442,6 +450,8 @@ TEST_DIRS=(
   "$SOURCE_PATH/tests/bping"
   "$SOURCE_PATH/tests/issue-352-bpcp-ltp"
   "$SOURCE_PATH/tests/issue-352-bpcp-stcp"
+  "$SOURCE_PATH/tests/cbr-ct-orange-book/custody-simple"
+  "$SOURCE_PATH/tests/cbr-ct-orange-book/crs-simple"
 )
 
 # Extract .c files
@@ -563,17 +573,20 @@ while [ "x${TEST_DIRS[count]}" != "x" ]; do
 done
 
 # Update bpsec_policy_rule.c
-# Modify the include path to work with the flat symlink structure
-echo "Updating path to header file bpsecadmin_config.h in bpsec_policy_rule.c"
-symlink="$SRC/bpv7/bpsec_policy_rule.c"
-if [ -L "$symlink" ]; then
-    target=$(ls -l "$symlink" | sed 's/.* -> //')
-    sed $SED_INPLACE 's!#include "../../utils/bpsecadmin_config.h"!#include "bpsecadmin_config.h"!g' "$target" || { echo "Error: Failed to modify $target"; exit 1; }
-    echo "Applied modification to source file: $target"
-else
-    echo "Error: $symlink is not a valid symlink or does not exist."
+# Replace the symlink with a local copy and modify the include path.
+# Editing the symlink target directly would dirty the ION-DTN submodule;
+# using a copy keeps the upstream source tree pristine.
+echo "Replacing bpsec_policy_rule.c symlink with a modified local copy"
+linkpath="$SRC/bpv7/bpsec_policy_rule.c"
+upstream="$SOURCE_PATH/bpv7/bpsec/policy/bpsec_policy_rule.c"
+if [ ! -f "$upstream" ]; then
+    echo "Error: upstream source $upstream not found."
     exit 1
 fi
+rm -f "$linkpath" || { echo "Error: Failed to remove $linkpath"; exit 1; }
+cp "$upstream" "$linkpath" || { echo "Error: Failed to copy $upstream to $linkpath"; exit 1; }
+sed $SED_INPLACE 's!#include "../../utils/bpsecadmin_config.h"!#include "bpsecadmin_config.h"!g' "$linkpath" || { echo "Error: Failed to modify $linkpath"; exit 1; }
+echo "Applied modification to local copy: $linkpath (upstream $upstream untouched)"
 
 echo "Done"
 exit 0

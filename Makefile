@@ -162,7 +162,8 @@ install-lib:
 # generated man page is in ion-core/man
 man:
 	./scripts/make-man-pages.sh $(SRC)/man "$(PROGRAMS)"
-	find $(MAN) -maxdepth 1 -type f -exec cp -v {} $(INSTALL_PATH)/share/man/man1 \; || true
+	find $(MAN) -maxdepth 1 -type f -name '*.1.gz' -exec cp -v {} $(INSTALL_PATH)/share/man/man1 \; || true
+	find $(MAN) -maxdepth 1 -type f -name '*.3.gz' -exec cp -v {} $(INSTALL_PATH)/share/man/man3 \; || true
 
 clean:
 	$(info Make "clean" target...)

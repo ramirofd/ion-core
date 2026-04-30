@@ -1,12 +1,13 @@
+# Include ICI Source
+include $(MDIR)/libici.mk
+
+ifndef LIBICI_INCLUDED
+$(error libici.mk is not found or not included, cannot build.)
+endif
+
 SRC_psmwatch := \
 	$(SRC_ICI)/psmwatch.c \
-	$(SRC_ICI)/platform.c \
-	$(SRC_ICI)/platform_sm.c \
-	$(SRC_ICI)/ion_network.c \
-	$(SRC_ICI)/memmgr.c \
-	$(SRC_ICI)/psm.c \
-	$(SRC_ICI)/smlist.c \
-	$(SRC_ICI)/sptrace.c
+	$(SRC_libici)
 
 psmwatch:
 	$(GCC) $(CFLAG) -I$(INC) $(SRC_psmwatch) \

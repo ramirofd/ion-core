@@ -707,8 +707,49 @@ foreach(PROG IN LISTS MAN_PROGRAMS)
   )
 endforeach()
 
+# Concept man pages (section 3) — non-program library/feature documentation.
+set(CONCEPT_MAN_PAGES_3)
+set(CONCEPT_MAN_NAMES cbr)  # custody transfer + compressed bundle reporting
+set(POD3_SEARCH_PATHS
+  ${SRC_DIR}/man
+  ${SRC_DIR}/bpv7/doc/pod3
+  ${SRC_DIR}/ici/doc/pod3
+  ${SRC_DIR}/cfdp/doc/pod3
+  ${SRC_DIR}/ltp/doc/pod3
+)
+foreach(NAME IN LISTS CONCEPT_MAN_NAMES)
+  set(POD_FILE "")
+  foreach(POD_PATH IN LISTS POD3_SEARCH_PATHS)
+    if(EXISTS "${POD_PATH}/${NAME}.pod")
+      set(POD_FILE "${POD_PATH}/${NAME}.pod")
+      break()
+    endif()
+  endforeach()
+  if(NOT POD_FILE)
+    message(STATUS "Concept pod for ${NAME} (section 3) not found; skipping.")
+    continue()
+  endif()
+  set(MAN_FILE ${MAN_DIR}/${NAME}.3)
+  set(MAN_GZ_FILE ${MAN_DIR}/${NAME}.3.gz)
+  list(APPEND CONCEPT_MAN_PAGES_3 ${MAN_GZ_FILE})
+  add_custom_command(
+    OUTPUT ${MAN_FILE}
+    COMMAND pod2man --section=3 --center="ION-Core Manual" --release="ION-Core ${PROJECT_VERSION}" ${POD_FILE} ${MAN_FILE}
+    DEPENDS ${POD_FILE}
+    COMMENT "Generating section-3 man page ${MAN_FILE}"
+    VERBATIM
+  )
+  add_custom_command(
+    OUTPUT ${MAN_GZ_FILE}
+    COMMAND gzip -f -c ${MAN_FILE} > ${MAN_GZ_FILE}
+    DEPENDS ${MAN_FILE}
+    COMMENT "Compressing man page to ${MAN_GZ_FILE}"
+    VERBATIM
+  )
+endforeach()
+
 # Custom target to build all man pages as part of the default build
-add_custom_target(man ALL DEPENDS ${MAN_PAGES})
+add_custom_target(man ALL DEPENDS ${MAN_PAGES} ${CONCEPT_MAN_PAGES_3})
 
 # Install ICI libraries
 install(TARGETS icicore_static
@@ -775,7 +816,10 @@ install(PROGRAMS
   ${BIN_DIR}/ionstart.awk
   ${BIN_DIR}/ionstop
   ${BIN_DIR}/killm
-  ${BIN_DIR}/ionprocesslist.sh
+  DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+)
+install(FILES
+  ${BIN_DIR}/ionprocesses.txt
   DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
 )
 # Install man pages
@@ -783,6 +827,12 @@ install(FILES ${MAN_PAGES}
   DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1
   PERMISSIONS OWNER_READ GROUP_READ WORLD_READ
 )
+if(CONCEPT_MAN_PAGES_3)
+  install(FILES ${CONCEPT_MAN_PAGES_3}
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man3
+    PERMISSIONS OWNER_READ GROUP_READ WORLD_READ
+  )
+endif()
 
 # Clean_all target: remove all build artifacts (but keep .gitkeep files)
 add_custom_target(clean_all

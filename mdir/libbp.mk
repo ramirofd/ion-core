@@ -16,6 +16,9 @@ SRC_libbp := $(SRC_BPV7)/libbp.c \
 	$(SRC_BPV7)/hcb.c \
 	$(SRC_BPV7)/snw.c \
 	$(SRC_BPV7)/imc.c \
+	$(SRC_BPV7)/cbr.c \
+	$(SRC_BPV7)/cteb.c \
+	$(SRC_BPV7)/creb.c \
 	$(SRC_BPV7)/libimcfw.c \
 	$(SRC_BPV7)/bibe.c \
 	$(SRC_BPV7)/eureka.c \
