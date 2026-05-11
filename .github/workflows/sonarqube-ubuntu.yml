@@ -40,10 +40,12 @@ jobs:
 
       - name: Prepare clean workspace
         run: |
-          make clean
+          sudo make clean || true
           sudo make uninstall || true
           sudo make uninstall-lib || true
-          make distclean
+          sudo make distclean || true
+          make clean || true
+          make distclean || true
           rm -rf .sonar
           mkdir -p "${BUILD_WRAPPER_OUT_DIR}"
 
@@ -54,9 +56,13 @@ jobs:
         run: |
           while IFS= read -r -d '' link_path; do
             target_path="$(readlink -f "$link_path")"
+            if [ ! -f "$target_path" ]; then
+              echo "Skipping non-file symlink: $link_path -> $target_path"
+              continue
+            fi
             rm "$link_path"
             cp -p "$target_path" "$link_path"
-          done < <(find src inc tests man -type l -print0)
+          done < <(find src inc -type l -print0)
 
       - name: Build with Sonar build-wrapper and coverage flags
         run: |
@@ -116,5 +122,5 @@ jobs:
         run: |
           sudo make uninstall-lib || true
           sudo make uninstall || true
-          make clean
-          make distclean
+          sudo make clean || true
+          sudo make distclean || true
