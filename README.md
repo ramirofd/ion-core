@@ -285,6 +285,23 @@ This set of minimum values are sufficient to pass the regression tests under the
 
 Please see the file `developer_notes.txt` for more information.
 
+## SonarQube in GitHub Actions
+
+This repository includes a dedicated workflow at [`.github/workflows/sonarqube-ubuntu.yml`](/Users/ramirodetke/Documents/LCD/ROBUSTNET/ion-core/.github/workflows/sonarqube-ubuntu.yml) to run SonarQube analysis on Ubuntu through GitHub Actions.
+
+The workflow is designed to maximize SonarQube metrics for this C codebase by combining:
+
+* SonarSource Build Wrapper for CFamily analysis
+* regression test execution through `make test`
+* coverage export through `gcovr` in Cobertura format
+* Quality Gate validation during the workflow run
+
+Configure the following GitHub repository settings before enabling it:
+
+* Repository or organization secret `SONAR_TOKEN`
+
+The workflow uploads `.sonar/` and `tests/progress` as artifacts to make troubleshooting easier when coverage or analysis fails.
+
 ## WSL2 Networking Issue
 
 WLS2 is known to have issues with VPN connection. One approach is to downgrade to WSL1:
@@ -345,5 +362,3 @@ Added ability to select/exclude certain features from build
   * UDPCL
   * IPN Nameing Scheme
   * Load-n-Go Command
-
-

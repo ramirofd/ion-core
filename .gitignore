@@ -12,3 +12,7 @@ system_up
 tests/*
 .vscode/settings.json
 configs
+.scannerwork/
+.sonar/
+coverage.xml
+coverage.html

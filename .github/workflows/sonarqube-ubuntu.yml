@@ -1,0 +1,112 @@
+name: SonarQube Analysis for ion-core
+
+on:
+  pull_request:
+    branches:
+      - integration
+  push:
+    branches:
+      - integration
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  sonarqube:
+    runs-on: ubuntu-latest
+    env:
+      BUILD_WRAPPER_OUT_DIR: .sonar/build-wrapper
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate SonarQube configuration
+        run: |
+          test -n "${SONAR_TOKEN}" || { echo "Missing repository/org secret SONAR_TOKEN"; exit 1; }
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bash python3 gcc make gcovr
+
+      - name: Install Sonar build-wrapper
+        uses: SonarSource/sonarqube-scan-action/install-build-wrapper@v7.1.0
+
+      - name: Prepare clean workspace
+        run: |
+          make clean
+          sudo make uninstall || true
+          sudo make uninstall-lib || true
+          make distclean
+          rm -rf .sonar
+          mkdir -p "${BUILD_WRAPPER_OUT_DIR}"
+
+      - name: Extract ion-open-source payload
+        run: ./scripts/extract.sh
+
+      - name: Build with Sonar build-wrapper and coverage flags
+        run: |
+          build-wrapper-linux-x86-64 --out-dir "${BUILD_WRAPPER_OUT_DIR}" \
+            make EXTRA_CFLAGS="--coverage -O0" EXTRA_LDFLAGS="--coverage"
+
+      - name: Run regression tests
+        run: |
+          sudo make install
+          sudo make install-lib
+          make test 2>&1 | tee .sonar/test.log
+
+      - name: Generate coverage reports
+        if: ${{ always() }}
+        run: |
+          gcovr \
+            --root . \
+            --filter "$GITHUB_WORKSPACE/src" \
+            --filter "$GITHUB_WORKSPACE/inc" \
+            --exclude "$GITHUB_WORKSPACE/src/man/.*" \
+            --exclude "$GITHUB_WORKSPACE/tests/.*" \
+            --exclude "$GITHUB_WORKSPACE/bin/.*" \
+            --exclude "$GITHUB_WORKSPACE/lib/.*" \
+            --cobertura .sonar/coverage.xml \
+            --html-details .sonar/coverage.html \
+            --print-summary
+
+      - name: Show test progress
+        if: ${{ always() }}
+        run: |
+          if [ -f tests/progress ]; then
+            cat tests/progress
+          else
+            echo "tests/progress was not generated."
+          fi
+
+      - name: SonarQube scan
+        if: ${{ always() }}
+        uses: SonarSource/sonarqube-scan-action@v7.1.0
+        with:
+          projectBaseDir: .
+          args: >
+            "-Dsonar.qualitygate.wait=true"
+            "-Dsonar.qualitygate.timeout=900"
+
+      - name: Upload Sonar and coverage artifacts
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonarqube-coverage-and-logs
+          path: |
+            .sonar/
+            tests/progress
+
+      - name: Cleanup installation
+        if: ${{ always() }}
+        run: |
+          sudo make uninstall-lib || true
+          sudo make uninstall || true
+          make clean
+          make distclean
