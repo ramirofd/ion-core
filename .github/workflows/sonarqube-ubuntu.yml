@@ -50,6 +50,14 @@ jobs:
       - name: Extract ion-open-source payload
         run: ./scripts/extract.sh
 
+      - name: Materialize linked sources for SonarQube
+        run: |
+          while IFS= read -r -d '' link_path; do
+            target_path="$(readlink -f "$link_path")"
+            rm "$link_path"
+            cp -p "$target_path" "$link_path"
+          done < <(find src inc tests man -type l -print0)
+
       - name: Build with Sonar build-wrapper and coverage flags
         run: |
           build-wrapper-linux-x86-64 --out-dir "${BUILD_WRAPPER_OUT_DIR}" \
